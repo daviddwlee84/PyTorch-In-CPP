@@ -6,6 +6,7 @@ libtorch*
 # Generated Files
 2_VanillaMKL/example/1_PureJson/create_json
 **/*/build/
+*.pt
 
 # Prerequisites
 *.d
