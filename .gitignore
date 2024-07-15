@@ -1,5 +1,6 @@
 # Downloaded Files
 cmake*
+libtorch*
 2_VanillaMKL/example/1_PureJson/include/thirdparty/nlohmann/json.hpp
 
 # Generated Files

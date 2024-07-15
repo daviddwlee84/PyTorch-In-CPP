@@ -1,0 +1,23 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Pure Json Example",
+            "type": "shell",
+            "command": "/usr/bin/make",
+            "options": {
+                "cwd": "${workspaceFolder}/2_VanillaMKL/example/1_PureJson"
+            }
+        },
+        {
+            "label": "Build Torch Tensor Example",
+            "type": "shell",
+            "command": "./build.sh",
+            "options": {
+                "cwd": "${workspaceFolder}/1_TorchScript/example/1_LibTorch_Basic_Tensor"
+            }
+        }
+    ]
+}

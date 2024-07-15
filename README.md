@@ -48,3 +48,8 @@ sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 60 --slave /
 ## 1. TorchScript
 
 ## 2. Json + MKL
+
+## Resources
+
+- [Get Started with C++ on Linux in Visual Studio Code](https://code.visualstudio.com/docs/cpp/config-linux)
+- [Tasks in Visual Studio Code](https://code.visualstudio.com/docs/editor/tasks)
