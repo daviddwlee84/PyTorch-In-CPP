@@ -29,6 +29,22 @@ make -j$(nproc)
 sudo make install
 ```
 
+- GCC 9 or later
+
+```bash
+gcc --version
+
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+sudo apt update
+sudo apt install gcc-13 g++-13
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 60 --slave /usr/bin/g++ g++ /usr/bin/g++-13
+```
+
+- [software installation - How do I use the latest GCC on Ubuntu? - Ask Ubuntu](https://askubuntu.com/questions/466651/how-do-i-use-the-latest-gcc-on-ubuntu)
+- [ppa - install gcc-9 on Ubuntu 18.04? - Ask Ubuntu](https://askubuntu.com/questions/1140183/install-gcc-9-on-ubuntu-18-04)
+
+> TODO: `clang`..?
+
 ## 1. TorchScript
 
 ## 2. Json + MKL
