@@ -52,4 +52,7 @@ sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 60 --slave /
 ## Resources
 
 - [Get Started with C++ on Linux in Visual Studio Code](https://code.visualstudio.com/docs/cpp/config-linux)
+  - [microsoft/vscode-cpptools: Official repository for the Microsoft C/C++ extension for VS Code.](https://github.com/microsoft/vscode-cpptools)
+  - [Introductory Videos for C++ in Visual Studio Code](https://code.visualstudio.com/docs/cpp/introvideos-cpp)
+  - [c_cpp_properties.json reference](https://code.visualstudio.com/docs/cpp/c-cpp-properties-schema-reference)
 - [Tasks in Visual Studio Code](https://code.visualstudio.com/docs/editor/tasks)
