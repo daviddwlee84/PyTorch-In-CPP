@@ -5,10 +5,12 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/2_VanillaMKL/example/1_PureJson/include/thirdparty/**",
-                "${workspaceFolder}/libtorch/**"
+                "${workspaceFolder}/libtorch/**",
+                "/opt/intel/oneapi/mkl/latest/include"
             ],
             "defines": [],
-            "compilerPath": "/usr/bin/gcc",
+            // "compilerPath": "/usr/bin/gcc",
+            "compilerPath": "/opt/intel/oneapi/compiler/latest/bin/dpcpp",
             "cStandard": "c11",
             "cppStandard": "gnu++14",
             "intelliSenseMode": "linux-gcc-x64"

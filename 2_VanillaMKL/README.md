@@ -48,3 +48,7 @@ make cpu-gpu
 
 1. [Selecting a Compiler — oneAPI Math Kernel Library Interfaces 0.1 documentation](https://oneapi-src.github.io/oneMKL/selecting_a_compiler.html)
    - [Compile Cross-Architecture: Intel® oneAPI DPC++/C++ Compiler](https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-compiler.html) => should already included in the toolkit
+
+- [Debugging SYCL™ code with DPC++ and Visual Studio® Code - Codeplay Software Ltd](https://codeplay.com/portal/blogs/2023/03/01/debugging-sycl-code-with-dpc-and-visual-studio-code)
+  - [Setting up C++ development with Visual Studio® Code on Ubuntu - Codeplay Software Ltd](https://codeplay.com/portal/blogs/2023/03/01/setting-up-c-development-with-visual-studio-code-on-ubuntu.html)
+  - [Setting up SYCL™ development with oneAPI™, DPC++ and Visual Studio® Code on Ubuntu - Codeplay Software Ltd](https://codeplay.com/portal/blogs/2023/03/01/setting-up-sycl-development-with-oneapi-dpc-and-visual-studio-code-on-ubuntu.html)
