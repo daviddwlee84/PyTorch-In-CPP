@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from model import PaddedLSTMRegression, SingleStepLSTMRegression
+from torchinfo import summary
 
 # Instantiate the original model and load pretrained weights
 feature_dim = 10
@@ -50,6 +51,11 @@ def test_models(
         single_step_output.append(output)
 
     single_step_output = torch.cat(single_step_output, dim=1).squeeze(-1)
+
+    print("Batch Model")
+    summary(original_model, input_data=(input_tensor, lengths))
+    print("Single Step Model")
+    summary(single_step_model, input_data=(x_t, h))
 
     # Compare the outputs
     return torch.allclose(original_output, single_step_output, atol=1e-5)
