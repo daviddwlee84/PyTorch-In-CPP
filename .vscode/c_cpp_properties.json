@@ -4,6 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
+                "${workspaceFolder}/shared/include",
                 "${workspaceFolder}/2_VanillaMKL/example/1_PureJson/include/thirdparty/**",
                 "${workspaceFolder}/libtorch/**",
                 "/opt/intel/oneapi/mkl/latest/include"
