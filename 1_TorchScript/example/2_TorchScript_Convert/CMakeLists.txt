@@ -3,8 +3,13 @@ project(custom_ops)
 
 find_package(Torch REQUIRED)
 
+# Example app executable
 add_executable(example-app example-app.cpp)
 target_link_libraries(example-app "${TORCH_LIBRARIES}")
 # NOTE: Need to use C++17 or later to compile (ATen & PyTorch)
 set_property(TARGET example-app PROPERTY CXX_STANDARD 17)
 
+# Benchmark executable
+add_executable(benchmark benchmark.cpp)
+target_link_libraries(benchmark "${TORCH_LIBRARIES}")
+set_property(TARGET benchmark PROPERTY CXX_STANDARD 17)

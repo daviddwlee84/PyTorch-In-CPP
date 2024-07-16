@@ -3,7 +3,8 @@
         "vector": "cpp",
         "iostream": "cpp",
         "string": "cpp",
-        "deque": "cpp"
+        "deque": "cpp",
+        "chrono": "cpp"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/g++"
 }
