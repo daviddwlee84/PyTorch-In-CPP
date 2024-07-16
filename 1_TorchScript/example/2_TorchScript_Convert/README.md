@@ -109,6 +109,7 @@ Libraries
 
 - [projectchrono/chrono: High-performance C++ library for multiphysics and multibody dynamics simulations](https://github.com/projectchrono/chrono)
 - [pytorch/cpuinfo: CPU INFOrmation library (x86/x86-64/ARM/ARM64, Linux/Windows/Android/macOS/iOS)](https://github.com/pytorch/cpuinfo)
+- [mraggi/tqdm-cpp: Easily display progress in C++17. Inspired by python's awesome tqdm library.](https://github.com/mraggi/tqdm-cpp)
 
 Control single thread
 

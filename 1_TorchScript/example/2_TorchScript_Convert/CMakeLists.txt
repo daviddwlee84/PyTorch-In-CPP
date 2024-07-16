@@ -10,6 +10,6 @@ target_link_libraries(example-app "${TORCH_LIBRARIES}")
 set_property(TARGET example-app PROPERTY CXX_STANDARD 17)
 
 # Benchmark executable
-add_executable(benchmark benchmark.cpp)
+add_executable(benchmark benchmark.cpp tqdm.hpp)
 target_link_libraries(benchmark "${TORCH_LIBRARIES}")
 set_property(TARGET benchmark PROPERTY CXX_STANDARD 17)

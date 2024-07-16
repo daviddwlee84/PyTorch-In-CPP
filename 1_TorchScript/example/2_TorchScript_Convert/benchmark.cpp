@@ -4,6 +4,7 @@
 #include <torch/script.h>
 #include <iostream>
 #include <chrono>
+#include "tqdm.hpp"
 
 void benchmark(const std::string &model_path, torch::Tensor input, int iterations)
 {
@@ -15,7 +16,8 @@ void benchmark(const std::string &model_path, torch::Tensor input, int iteration
 
     // Measure inference time
     auto start = std::chrono::high_resolution_clock::now();
-    for (int i = 0; i < iterations; ++i)
+    // for (int i = 0; i < iterations; ++i)
+    for (int i : tq::trange(iterations))
     {
         module.forward({input});
     }
