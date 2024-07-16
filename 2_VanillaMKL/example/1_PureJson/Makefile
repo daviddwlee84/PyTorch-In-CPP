@@ -4,7 +4,8 @@
 CXX = g++
 
 # Compiler flags
-CXXFLAGS = -std=c++11 -Iinclude/thirdparty/
+# CXXFLAGS = -std=c++11 -Iinclude/thirdparty/
+CXXFLAGS = -std=c++11 -I../../../shared/include/
 
 # Source files
 SRC = create_json.cpp
