@@ -4,9 +4,9 @@ from model import PaddedLSTMRegression, SingleStepLSTMRegression
 from torchinfo import summary
 
 # Instantiate the original model and load pretrained weights
-feature_dim = 10
-hidden_size = 64
-num_layers = 2
+feature_dim = 148
+hidden_size = 128
+num_layers = 3
 batch_first = True
 
 original_model = PaddedLSTMRegression(feature_dim, hidden_size, num_layers, batch_first)
@@ -62,10 +62,10 @@ def test_models(
 
 
 # Generate some sample data
-batch_size = 4
-seq_len = 5
+batch_size = 1
+seq_len = 4000
 input_tensor = torch.randn(batch_size, seq_len, feature_dim)
-lengths = torch.tensor([seq_len, seq_len, seq_len, seq_len])
+lengths = torch.tensor([seq_len] * batch_size)
 
 # Perform the test
 result = test_models(original_model, single_step_model, input_tensor, lengths)
