@@ -66,10 +66,6 @@ int main(int argc, const char *argv[])
     // Example input tensor
     torch::Tensor input = torch::rand({1, 3, 224, 224});
 
-    // Set the number of threads to 1 for single-threaded execution
-    torch::set_num_threads(1);
-    // torch::set_num_interop_threads(1);
-
     // Benchmark traced model
     std::cout << "Benchmarking traced model..." << std::endl;
     benchmark("../traced_resnet_model.pt", input, iterations);

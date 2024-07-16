@@ -19,3 +19,8 @@ if (MSVC)
                      ${TORCH_DLLS}
                      $<TARGET_FILE_DIR:example-app>)
 endif (MSVC)
+
+# Load Tensor executable
+add_executable(load-tensor load-tensor.cpp)
+target_link_libraries(load-tensor "${TORCH_LIBRARIES}")
+set_property(TARGET load-tensor PROPERTY CXX_STANDARD 17)
