@@ -6,14 +6,15 @@
 
 1. `./build.sh`
 2. Generate `torch.jit.ScriptModule` by `python convert_by_tracing.py` or by `python convert_by_annotation.py`
-3. `./example-app ../traced_resnet_model.pt` or `./example-app ../script_resnet_model.pt`
+3. `./example-app ../traced_resnet_model.pt` or `./example-app ../script_resnet_model.pt` (in `./build/`)
+4. `./benchmark` (in `./build/`)
 
 ## Benchmark
 
-| Convert Using | Convert TorchScript | Inference in C++ (1000 iterations) |
-| ------------- | ------------------- | ---------------------------------- |
-| Tracing       | 0.8884697519242764  | 0.0239399                          |
-| Annotation    | 0.4122754968702793  | 0.0255857                          |
+| Convert Using | Convert TorchScript | Inference in C++ (Average 1000 iterations in 60 threads) | Inference in C++ (Average 1000 iterations in single thread) |
+| ------------- | ------------------- | -------------------------------------------------------- | ----------------------------------------------------------- |
+| Tracing       | 0.8884697519242764  | 0.0239399                                                | 0.151959 (x6.3475 than 60 threads)                          |
+| Annotation    | 0.4122754968702793  | 0.0255857                                                | 0.153334 (x5.9929 than 60 threads)                          |
 
 ```txt
 ==========================================================================================
@@ -104,4 +105,34 @@ Estimated Total Size (MB): 87.11
 
 ## Resources
 
+Libraries
+
 - [projectchrono/chrono: High-performance C++ library for multiphysics and multibody dynamics simulations](https://github.com/projectchrono/chrono)
+- [pytorch/cpuinfo: CPU INFOrmation library (x86/x86-64/ARM/ARM64, Linux/Windows/Android/macOS/iOS)](https://github.com/pytorch/cpuinfo)
+
+Control single thread
+
+- [Use single thread on Intel CPU - C++ - PyTorch Forums](https://discuss.pytorch.org/t/use-single-thread-on-intel-cpu/34233)
+- [python - Pytorch C++ (Libtroch), using inter-op parallelism - Stack Overflow](https://stackoverflow.com/questions/68361267/pytorch-c-libtroch-using-inter-op-parallelism)
+
+Example
+
+- [examples/cpp/mnist at cpp · goldsborough/examples](https://github.com/goldsborough/examples/tree/cpp/cpp/mnist)
+
+---
+
+Trouble Shooting for Thread Settings
+
+- [torch::set_num_threads does not work · Issue #19213 · pytorch/pytorch](https://github.com/pytorch/pytorch/issues/19213)
+- [Pytorch seems very slow on CPU - nlp - PyTorch Forums](https://discuss.pytorch.org/t/pytorch-seems-very-slow-on-cpu/94360/7)
+
+Related Environment Variables
+
+- `MKL_NUM_THREADS`
+- `OMP_NUM_THREADS`
+
+Related Function
+
+- `at::set_num_threads` (`#include “ATen/Parallel.h”`)
+- `omp_get_max_threads`
+- `torch::get_num_threads()`, `torch::set_num_threads()`, `torch::set_num_interop_threads()` (`#include <torch/torch.h>`)
