@@ -4,6 +4,8 @@
 
 Test single tick data single-thread inference time
 
+### Model: GRU 148 dimension features, 128 hidden size, 3 layers
+
 C++
 
 ```zsh
@@ -39,6 +41,33 @@ intra-op threads: 1
 inter-op threads: 1
 Average single tick inference time (sec): 0.0011017058747820555
 ```
+
+### Model: GRU 148 dimension features, 96 hidden size, 2 layers
+
+C++
+
+```zsh
+(conbond_venv) (research) ➜  4_Batch_GRU_to_Single-Step_GRU git:(main) ✗ ./build/benchmark 10000 1
+Default Torch Threads: 60
+Updated Torch Threads: 1
+Will use average of 10000 iterations.
+Benchmarking scripted model...
+Inference time: 0.00061052 seconds
+```
+
+Python
+
+```zsh
+(conbond_venv) (research) ➜  4_Batch_GRU_to_Single-Step_GRU git:(main) ✗ python test_in_python.py 
+intra-op threads: 60
+inter-op threads: 120
+Average single tick inference time (sec): 0.001085287950700149
+(conbond_venv) (research) ➜  4_Batch_GRU_to_Single-Step_GRU git:(main) ✗ python test_in_python.py 1
+intra-op threads: 1
+inter-op threads: 1
+Average single tick inference time (sec): 0.0008055593005847185
+```
+
 
 ## Model
 
