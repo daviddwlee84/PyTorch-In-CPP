@@ -4,13 +4,32 @@
 #include "SingleStepLSTMRegressionMKL.h"
 #include <mkl.h>
 #include <omp.h>
+#include <chrono>
 
-int main()
+int main(int argc, const char *argv[])
 {
-    int64_t feature_dim = 10; // Example feature dimension
-    int64_t hidden_size = 64; // Example hidden size
-    int64_t num_layers = 2;   // Example number of layers
+    int64_t feature_dim = 148; // Example feature dimension
+    int64_t hidden_size = 128; // Example hidden size
+    int64_t num_layers = 3;   // Example number of layers
     SingleStepLSTMRegressionMKL model(feature_dim, hidden_size, num_layers);
+
+    int iterations = 100; // Default value
+
+    if (argc > 3)
+    {
+        std::cerr << "Usage: " << argv[0] << " [iterations] [threads]" << std::endl;
+        return 1;
+    }
+
+    if (argc >= 2)
+    {
+        iterations = std::atoi(argv[1]);
+        if (iterations <= 0)
+        {
+            std::cerr << "Iterations must be a positive integer." << std::endl;
+            return 1;
+        }
+    }
 
     // Print the number of threads being used
     int mkl_threads = mkl_get_max_threads();
@@ -27,5 +46,25 @@ int main()
     auto output = model.forward(input, h);
 
     std::cout << "Output: " << std::get<0>(output)[0] << std::endl; // Print output tensor
+
+    if (argc <= 1)
+    {
+        return 0;
+    }
+
+    std::cout << "Will use average of " << iterations << " iterations." << std::endl;
+    std::cout << "Benchmarking Pure oneMKL C++ model..." << std::endl;
+
+    // Measure inference time
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < iterations; ++i)
+    {
+        auto output = model.forward(input, h);
+        h = std::get<1>(output);
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> diff = end - start;
+    std::cout << "Inference time: " << diff.count() / iterations << " seconds" << std::endl;
+
     return 0;
 }
