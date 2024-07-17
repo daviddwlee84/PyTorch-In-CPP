@@ -1,12 +1,13 @@
 # Downloaded Files
 cmake*
 libtorch*
-2_VanillaMKL/example/1_PureJson/include/thirdparty/nlohmann/json.hpp
 
 # Generated Files
 2_VanillaMKL/example/1_PureJson/create_json
 **/*/build/
 *.pt
+2_VanillaMKL/example/4_Load_StateDict_Json/load_json
+2_VanillaMKL/example/4_Load_StateDict_Json/*.json
 
 # Prerequisites
 *.d
