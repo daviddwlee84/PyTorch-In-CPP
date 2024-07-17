@@ -1,4 +1,44 @@
+# Convert a Batch Model into a Single-Step Model with same weights
 
+## Benchmark
+
+Test single tick data single-thread inference time
+
+C++
+
+```zsh
+(conbond_venv) (research) ➜  4_Batch_GRU_to_Single-Step_GRU git:(main) ✗ ./build/benchmark 100 1
+Default Torch Threads: 60
+Updated Torch Threads: 1
+Will use average of 100 iterations.
+Benchmarking scripted model...
+Inference time: 0.00103861 seconds
+(conbond_venv) (research) ➜  4_Batch_GRU_to_Single-Step_GRU git:(main) ✗ ./build/benchmark 1000 1
+Default Torch Threads: 60
+Updated Torch Threads: 1
+Will use average of 1000 iterations.
+Benchmarking scripted model...
+Inference time: 0.000897268 seconds
+(conbond_venv) (research) ➜  4_Batch_GRU_to_Single-Step_GRU git:(main) ✗ ./build/benchmark 10000 1
+Default Torch Threads: 60
+Updated Torch Threads: 1
+Will use average of 10000 iterations.
+Benchmarking scripted model...
+Inference time: 0.000882398 seconds
+```
+
+Python
+
+```zsh
+(conbond_venv) (research) ➜  4_Batch_GRU_to_Single-Step_GRU git:(main) ✗ python test_in_python.py  
+intra-op threads: 60
+inter-op threads: 120
+Average single tick inference time (sec): 0.0013070359490811826
+(conbond_venv) (research) ➜  4_Batch_GRU_to_Single-Step_GRU git:(main) ✗ python test_in_python.py 1
+intra-op threads: 1
+inter-op threads: 1
+Average single tick inference time (sec): 0.0011017058747820555
+```
 
 ## Model
 
@@ -96,4 +136,19 @@ Forward/backward pass size (MB): 0.00
 Params size (MB): 1.22
 Estimated Total Size (MB): 3.59
 ==========================================================================================
+```
+
+---
+
+Trouble Shooting
+
+```txt
+-- Added CUDA NVCC flags for: -gencode;arch=compute_75,code=sm_75
+CMake Warning at /mnt/NAS/sda/ShareFolder/lidawei/ConvertibleBond_LimitOrderBook/conbond_venv/lib/python3.8/site-packages/torch/share/cmake/Torch/TorchConfig.cmake:22 (message):
+  static library kineto_LIBRARY-NOTFOUND not found.
+Call Stack (most recent call first):
+  /mnt/NAS/sda/ShareFolder/lidawei/ConvertibleBond_LimitOrderBook/conbond_venv/lib/python3.8/site-packages/torch/share/cmake/Torch/TorchConfig.cmake:127 (append_torchlib_if_found)
+  CMakeLists.txt:4 (find_package)
+
+/usr/bin/ld: cannot find -lLIBNVTOOLSEXT-NOTFOUND: No such file or directory
 ```

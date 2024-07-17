@@ -2,6 +2,19 @@ import torch
 import torch.nn as nn
 from model import PaddedLSTMRegression, SingleStepLSTMRegression
 from torchinfo import summary
+import time
+import sys
+
+threads = int(sys.argv[1]) if len(sys.argv) > 1 else -1
+
+if threads > 0:
+    # Set the number of threads for intra-op parallelism
+    torch.set_num_threads(threads)
+    # Set the number of threads for inter-op parallelism
+    torch.set_num_interop_threads(threads)
+
+print("intra-op threads:", torch.get_num_threads())
+print("inter-op threads:", torch.get_num_interop_threads())
 
 # Instantiate the original model and load pretrained weights
 feature_dim = 148
@@ -45,10 +58,17 @@ def test_models(
     h = single_step_model.init_hidden(batch_size)
     single_step_output = []
 
+    total_time = 0
     for t in range(input_tensor.size(1)):
+        start_time = time.perf_counter()
         x_t = input_tensor[:, t, :]
         output, h = single_step_model(x_t, h)
+        total_time += time.perf_counter() - start_time
         single_step_output.append(output)
+
+    print(
+        "Average single tick inference time (sec):", total_time / input_tensor.size(1)
+    )
 
     single_step_output = torch.cat(single_step_output, dim=1).squeeze(-1)
 
@@ -70,3 +90,8 @@ lengths = torch.tensor([seq_len] * batch_size)
 # Perform the test
 result = test_models(original_model, single_step_model, input_tensor, lengths)
 print("Are the outputs from both models equal? ", result)
+
+# Convert the model to a script module
+single_step_script_module = torch.jit.script(single_step_model)
+# Save the scripted model to a file
+single_step_script_module.save("scripted_single_step_model.pt")
