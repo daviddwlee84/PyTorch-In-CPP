@@ -6,5 +6,6 @@
         "deque": "cpp",
         "chrono": "cpp"
     },
-    "C_Cpp.default.compilerPath": "/usr/bin/g++"
+    "C_Cpp.default.compilerPath": "/usr/bin/g++",
+    "cmake.configureOnOpen": false
 }
