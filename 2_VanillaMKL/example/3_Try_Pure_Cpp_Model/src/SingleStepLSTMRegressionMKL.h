@@ -14,7 +14,7 @@ public:
 
 private:
     void batch_norm(std::vector<float> &x);
-    void gru_cell(const std::vector<float> &x, const std::vector<float> &h, std::vector<float> &new_h);
+    void gru_cell(const std::vector<float> &x, const std::vector<float> &h, std::vector<float> &new_h, int layer);
 
     int64_t feature_dim;
     int64_t hidden_size;
@@ -23,8 +23,8 @@ private:
     std::vector<float> batch_norm_var;
     std::vector<float> batch_norm_gamma;
     std::vector<float> batch_norm_beta;
-    std::vector<float> lstm_weights;
-    std::vector<float> lstm_biases;
+    std::vector<std::vector<float>> lstm_weights;
+    std::vector<std::vector<float>> lstm_biases;
     std::vector<float> linear_weights;
     std::vector<float> linear_biases;
 };

@@ -5,7 +5,8 @@
         "string": "cpp",
         "deque": "cpp",
         "chrono": "cpp",
-        "tuple": "cpp"
+        "tuple": "cpp",
+        "cmath": "cpp"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/g++",
     "cmake.configureOnOpen": false

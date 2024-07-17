@@ -10,8 +10,8 @@ SingleStepLSTMRegressionMKL::SingleStepLSTMRegressionMKL(int64_t feature_dim, in
     batch_norm_gamma.resize(feature_dim, 1.0f);
     batch_norm_beta.resize(feature_dim, 0.0f);
 
-    lstm_weights.resize(3 * hidden_size * feature_dim, 0.1f);
-    lstm_biases.resize(3 * hidden_size, 0.1f);
+    lstm_weights.resize(num_layers, std::vector<float>(3 * hidden_size * feature_dim, 0.1f));
+    lstm_biases.resize(num_layers, std::vector<float>(3 * hidden_size, 0.1f));
     linear_weights.resize(hidden_size, 0.1f);
     linear_biases.resize(1, 0.1f);
 }
@@ -29,22 +29,22 @@ void SingleStepLSTMRegressionMKL::batch_norm(std::vector<float> &x)
     }
 }
 
-void SingleStepLSTMRegressionMKL::gru_cell(const std::vector<float> &x, const std::vector<float> &h, std::vector<float> &new_h)
+void SingleStepLSTMRegressionMKL::gru_cell(const std::vector<float> &x, const std::vector<float> &h, std::vector<float> &new_h, int layer)
 {
     std::vector<float> z(hidden_size);
     std::vector<float> r(hidden_size);
     std::vector<float> n(hidden_size);
 
     // Matrix multiplication
-    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, hidden_size, 1, feature_dim, 1.0, lstm_weights.data(), feature_dim, x.data(), 1, 0.0, z.data(), 1);
-    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, hidden_size, 1, feature_dim, 1.0, lstm_weights.data() + hidden_size * feature_dim, feature_dim, x.data(), 1, 0.0, r.data(), 1);
-    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, hidden_size, 1, feature_dim, 1.0, lstm_weights.data() + 2 * hidden_size * feature_dim, feature_dim, x.data(), 1, 0.0, n.data(), 1);
+    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, hidden_size, 1, feature_dim, 1.0, lstm_weights[layer].data(), feature_dim, x.data(), 1, 0.0, z.data(), 1);
+    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, hidden_size, 1, feature_dim, 1.0, lstm_weights[layer].data() + hidden_size * feature_dim, feature_dim, x.data(), 1, 0.0, r.data(), 1);
+    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, hidden_size, 1, feature_dim, 1.0, lstm_weights[layer].data() + 2 * hidden_size * feature_dim, feature_dim, x.data(), 1, 0.0, n.data(), 1);
 
     for (int64_t i = 0; i < hidden_size; ++i)
     {
-        z[i] += lstm_biases[i];
-        r[i] += lstm_biases[i + hidden_size];
-        n[i] += lstm_biases[i + 2 * hidden_size];
+        z[i] += lstm_biases[layer][i];
+        r[i] += lstm_biases[layer][i + hidden_size];
+        n[i] += lstm_biases[layer][i + 2 * hidden_size];
 
         z[i] = 1.0 / (1.0 + exp(-z[i]));
         r[i] = 1.0 / (1.0 + exp(-r[i]));
@@ -60,7 +60,12 @@ std::tuple<std::vector<float>, std::vector<float>> SingleStepLSTMRegressionMKL::
     batch_norm(x_copy);
 
     std::vector<float> new_h(hidden_size);
-    gru_cell(x_copy, h, new_h);
+    std::vector<float> current_h = h;
+    for (int layer = 0; layer < num_layers; ++layer)
+    {
+        gru_cell(x_copy, current_h, new_h, layer);
+        current_h = new_h;
+    }
 
     std::vector<float> output(1);
     cblas_sgemv(CblasRowMajor, CblasNoTrans, 1, hidden_size, 1.0, linear_weights.data(), hidden_size, new_h.data(), 1, 0.0, output.data(), 1);
