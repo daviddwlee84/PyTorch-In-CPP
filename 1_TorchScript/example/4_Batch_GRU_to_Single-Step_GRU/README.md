@@ -181,3 +181,7 @@ Call Stack (most recent call first):
 
 /usr/bin/ld: cannot find -lLIBNVTOOLSEXT-NOTFOUND: No such file or directory
 ```
+
+---
+
+- https://chatgpt.com/share/559b6998-72f8-4803-98c9-c7cebcc49848
