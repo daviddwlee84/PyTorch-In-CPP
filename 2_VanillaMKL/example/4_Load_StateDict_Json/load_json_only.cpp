@@ -138,11 +138,10 @@ int main(int argc, const char *argv[])
 
     // Load batch_norm weights (Vector)
     std::vector<float> batch_norm_weight = load_vector(state_dict["batch_norm.weight"]);
-    debug_vector(batch_norm_weight);
+    debug_vector(batch_norm_weight, "batch_norm.weight");
 
     // Load LSTM weights into oneMKL matrices (Matrix)
     std::vector<std::vector<float>> lstm_weight_ih_l0 = load_matrix(state_dict["lstm.weight_ih_l0"]);
-    debug_matrix(lstm_weight_ih_l0);
-
+    debug_matrix(lstm_weight_ih_l0, "lstm.weight_ih_l0");
     return 0;
 }
