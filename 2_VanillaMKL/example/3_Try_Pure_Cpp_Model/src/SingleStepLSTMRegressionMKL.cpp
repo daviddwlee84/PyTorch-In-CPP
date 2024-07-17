@@ -36,6 +36,7 @@ void SingleStepLSTMRegressionMKL::gru_cell(const std::vector<float> &x, const st
     std::vector<float> n(hidden_size);
 
     // Matrix multiplication
+    // https://www.intel.com/content/www/us/en/docs/onemkl/developer-reference-c/2024-2/cblas-gemm-001.html
     cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, hidden_size, 1, feature_dim, 1.0, lstm_weights[layer].data(), feature_dim, x.data(), 1, 0.0, z.data(), 1);
     cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, hidden_size, 1, feature_dim, 1.0, lstm_weights[layer].data() + hidden_size * feature_dim, feature_dim, x.data(), 1, 0.0, r.data(), 1);
     cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, hidden_size, 1, feature_dim, 1.0, lstm_weights[layer].data() + 2 * hidden_size * feature_dim, feature_dim, x.data(), 1, 0.0, n.data(), 1);
@@ -68,6 +69,7 @@ std::tuple<std::vector<float>, std::vector<float>> SingleStepLSTMRegressionMKL::
     }
 
     std::vector<float> output(1);
+    // https://www.intel.com/content/www/us/en/docs/onemkl/developer-reference-c/2024-2/cblas-gemv.html
     cblas_sgemv(CblasRowMajor, CblasNoTrans, 1, hidden_size, 1.0, linear_weights.data(), hidden_size, new_h.data(), 1, 0.0, output.data(), 1);
     output[0] += linear_biases[0];
 

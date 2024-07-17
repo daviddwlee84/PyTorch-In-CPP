@@ -27,6 +27,26 @@ Updated Torch Threads: 1
 Will use average of 10000 iterations.
 Benchmarking scripted model...
 Inference time: 0.000882398 seconds
+
+# Try setting MKL environment variables
+(conbond_venv) (research) ➜  4_Batch_GRU_to_Single-Step_GRU git:(main) ✗ MKL_THREADING_LAYER=INTEL MKL_SERVICE_FORCE_INTEL=1 ./build/benchmark 10000
+Default Torch Threads: 60
+Will use average of 10000 iterations.
+Benchmarking scripted model...
+Inference time: 0.000917577 seconds
+(conbond_venv) (research) ➜  4_Batch_GRU_to_Single-Step_GRU git:(main) ✗ MKL_THREADING_LAYER=INTEL MKL_SERVICE_FORCE_INTEL=1 ./build/benchmark 10000 1
+Default Torch Threads: 60
+Updated Torch Threads: 1
+Will use average of 10000 iterations.
+Benchmarking scripted model...
+Inference time: 0.000898809 seconds
+(conbond_venv) (research) ➜  4_Batch_GRU_to_Single-Step_GRU git:(main) ✗ MKL_DYNAMIC=FALSE MKL_THREADING_LAYER=INTEL MKL_SERVICE_FORCE_INTEL=1 ./build/benchmark 1
+0000 1
+Default Torch Threads: 120
+Updated Torch Threads: 1
+Will use average of 10000 iterations.
+Benchmarking scripted model...
+Inference time: 0.000876873 seconds
 ```
 
 Python
