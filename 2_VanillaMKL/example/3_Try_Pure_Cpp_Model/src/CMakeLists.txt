@@ -8,13 +8,6 @@ if(WIN32)
     set(WIN_FLAG "/EHsc")
 endif()
 
-# Link MKL libraries (failed)
-# find_package(MKL REQUIRED)
-# include_directories(${MKL_INCLUDE_DIRS})
-# link_directories(${MKL_LIBRARY_DIRS})
-# set(MKL_LIBRARIES ${MKL_LIBRARIES} mkl_intel_lp64 mkl_sequential mkl_core)
-
-
 #
 # SECTION 1
 # This section defines rules to create a cpu-gpu make target
