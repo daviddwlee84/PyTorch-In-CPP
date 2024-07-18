@@ -10,6 +10,7 @@ libtorch*
 2_VanillaMKL/example/4_Load_StateDict_Json/*.json
 1_TorchScript/example/6_Load_StateDict_Json/load_json
 1_TorchScript/example/6_Load_StateDict_Json/*.json
+2_VanillaMKL/example/5_Load_StateDict_For_Model/*.json
 
 # Prerequisites
 *.d
