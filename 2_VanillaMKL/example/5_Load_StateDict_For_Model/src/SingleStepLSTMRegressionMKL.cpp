@@ -62,8 +62,13 @@ void SingleStepLSTMRegressionMKL::gru_cell(const std::vector<float> &x, const st
 
 std::tuple<std::vector<float>, std::vector<float>> SingleStepLSTMRegressionMKL::forward(const std::vector<float> &x, const std::vector<float> &h)
 {
+    debug_vector(x, "x");
+    debug_vector(x, "h");
+
     std::vector<float> x_copy = x;
     batch_norm(x_copy);
+
+    debug_vector(x_copy, "Batch Norm");
 
     std::vector<float> new_h(hidden_size);
     std::vector<float> current_h = h;
