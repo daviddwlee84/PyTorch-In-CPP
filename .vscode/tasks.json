@@ -60,6 +60,25 @@
                 "$gcc"
             ],
             "detail": "Build Torch Tensor Example in Debug mode"
+        },
+        {
+            "label": "Build MKL Load StateDict Into Model Example (Debug)",
+            "type": "shell",
+            "command": "./build.sh",
+            "args": [
+                "Debug"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/2_VanillaMKL/example/5_Load_StateDict_For_Model"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "detail": "Build MKL Load StateDict Into Model Example in Debug mode"
         }
     ]
 }

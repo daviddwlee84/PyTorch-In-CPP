@@ -50,6 +50,8 @@ sudo apt update
 sudo apt install gdb
 ```
 
+- [Configure launch.json for C/C++ debugging in Visual Studio Code](https://code.visualstudio.com/docs/cpp/launch-json-reference)
+
 > TODO: `clang`..?
 
 ## 1. TorchScript
