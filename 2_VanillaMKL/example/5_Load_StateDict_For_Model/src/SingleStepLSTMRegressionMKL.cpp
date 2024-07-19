@@ -39,29 +39,28 @@ void SingleStepLSTMRegressionMKL::gru_cell(const std::vector<float> &x, const st
     std::vector<float> r(hidden_size);
     std::vector<float> n(hidden_size);
 
-    // Update gate
+    // Update gate (z)
     cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, hidden_size, 1, feature_dim, 1.0, lstm_weights[layer].data(), feature_dim, x.data(), 1, 0.0, z.data(), 1);
     cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, hidden_size, 1, hidden_size, 1.0, lstm_weights[layer].data() + 3 * hidden_size * feature_dim, hidden_size, h.data() + layer * hidden_size, 1, 1.0, z.data(), 1);
 
-    // Reset gate
+    // Reset gate (r)
     cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, hidden_size, 1, feature_dim, 1.0, lstm_weights[layer].data() + hidden_size * feature_dim, feature_dim, x.data(), 1, 0.0, r.data(), 1);
     cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, hidden_size, 1, hidden_size, 1.0, lstm_weights[layer].data() + (3 * hidden_size * feature_dim + hidden_size * hidden_size), hidden_size, h.data() + layer * hidden_size, 1, 1.0, r.data(), 1);
 
-    // New gate
+    // Candidate hidden state (n)
     cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, hidden_size, 1, feature_dim, 1.0, lstm_weights[layer].data() + 2 * hidden_size * feature_dim, feature_dim, x.data(), 1, 0.0, n.data(), 1);
-    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, hidden_size, 1, hidden_size, 1.0, lstm_weights[layer].data() + (3 * hidden_size * feature_dim + 2 * hidden_size * hidden_size), hidden_size, h.data() + layer * hidden_size, 1, 1.0, n.data(), 1);
+    for (int64_t i = 0; i < hidden_size; ++i)
+    {
+        r[i] = 1.0 / (1.0 + exp(-r[i])); // sigmoid for reset gate
+        n[i] += lstm_biases[layer][i + 2 * hidden_size];
+        n[i] = tanh(n[i] + r[i] * h[layer * hidden_size + i]); // tanh for candidate hidden state
+    }
 
     for (int64_t i = 0; i < hidden_size; ++i)
     {
         z[i] += lstm_biases[layer][i];
-        r[i] += lstm_biases[layer][i + hidden_size];
-        n[i] += lstm_biases[layer][i + 2 * hidden_size];
-
-        z[i] = 1.0 / (1.0 + exp(-z[i]));                       // sigmoid
-        r[i] = 1.0 / (1.0 + exp(-r[i]));                       // sigmoid
-        n[i] = tanh(n[i] + r[i] * h[layer * hidden_size + i]); // tanh
-
-        new_h[i] = (1 - z[i]) * n[i] + z[i] * h[layer * hidden_size + i];
+        z[i] = 1.0 / (1.0 + exp(-z[i]));                                  // sigmoid for update gate
+        new_h[i] = (1 - z[i]) * n[i] + z[i] * h[layer * hidden_size + i]; // update hidden state
     }
 
     // debug_vector(z, "Update Gate (z)");

@@ -62,4 +62,8 @@ Linear x: tensor([[1.1921]], grad_fn=<AddmmBackward0>)
 tensor([[1.1921]], grad_fn=<AddmmBackward0>)
 ```
 
-=> BUG: Currently Python single step result is not align with C++ version
+=> BUG: Currently Python single step result is not aligned with C++ version (and also not aligned with from scratch Python version)
+
+- [gru-from-scratch/gru.py at main · gursi26/gru-from-scratch](https://github.com/gursi26/gru-from-scratch/blob/main/gru.py)
+- [d2l-pytorch/Ch10_Recurrent_Neural_Networks/Gated_Recurrent_Units.ipynb at master · dsgiitr/d2l-pytorch](https://github.com/dsgiitr/d2l-pytorch/blob/master/Ch10_Recurrent_Neural_Networks/Gated_Recurrent_Units.ipynb)
+- [d2l-pytorch/Ch10_Recurrent_Neural_Networks/Long_Short_Term_Memory.ipynb at master · dsgiitr/d2l-pytorch](https://github.com/dsgiitr/d2l-pytorch/blob/master/Ch10_Recurrent_Neural_Networks/Long_Short_Term_Memory.ipynb)
