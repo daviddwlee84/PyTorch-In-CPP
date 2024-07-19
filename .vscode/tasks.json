@@ -24,12 +24,42 @@
             "detail": "Build Project"
         },
         {
-            "label": "Build Torch Tensor Example",
+            "label": "Build Torch Tensor Example (Release)",
             "type": "shell",
             "command": "./build.sh",
+            "args": [
+                "Release"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}/1_TorchScript/example/1_LibTorch_Basic_Tensor"
-            }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "detail": "Build Torch Tensor Example in Release mode"
+        },
+        {
+            "label": "Build Torch Tensor Example (Debug)",
+            "type": "shell",
+            "command": "./build.sh",
+            "args": [
+                "Debug"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/1_TorchScript/example/1_LibTorch_Basic_Tensor"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "detail": "Build Torch Tensor Example in Debug mode"
         }
     ]
 }

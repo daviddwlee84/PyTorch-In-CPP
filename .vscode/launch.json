@@ -31,6 +31,62 @@
                 "programOutput": true,
                 "exceptions": true
             }
+        },
+        {
+            "name": "1_TorchScript/example/1_LibTorch_Basic_Tensor - load_tensor",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/1_TorchScript/example/1_LibTorch_Basic_Tensor/build/load-tensor", // Adjust the path
+            "args": [], // Add any command line arguments here
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/1_TorchScript/example/1_LibTorch_Basic_Tensor",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "Build Torch Tensor Example (Debug)", // Define a task to build the project
+            "miDebuggerPath": "/usr/bin/gdb", // Adjust to your gdb path
+            "logging": {
+                "trace": true,
+                "traceResponse": true,
+                "engineLogging": true,
+                "programOutput": true,
+                "exceptions": true
+            }
+        },
+        {
+            "name": "1_TorchScript/example/1_LibTorch_Basic_Tensor - example-app",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/1_TorchScript/example/1_LibTorch_Basic_Tensor/build/example-app", // Adjust the path
+            "args": [], // Add any command line arguments here
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/1_TorchScript/example/1_LibTorch_Basic_Tensor",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "Build Torch Tensor Example - Debug", // Define a task to build the project
+            "miDebuggerPath": "/usr/bin/gdb", // Adjust to your gdb path
+            "logging": {
+                "trace": true,
+                "traceResponse": true,
+                "engineLogging": true,
+                "programOutput": true,
+                "exceptions": true
+            }
         }
     ]
 }
