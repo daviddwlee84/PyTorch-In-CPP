@@ -9,6 +9,18 @@ make cpu-gpu
 
 ...
 
+x: [1, 1, 1, 1, 1]
+(size: 5)
+h: [1, 1, 1, 1, 1]
+(size: 5)
+Batch Norm: [0.999995, 0.999995, 0.999995, 0.999995, 0.999995]
+(size: 5)
+GRU x: [0.999995, 0.999995, 0.999995, 0.999995, 0.999995]
+(size: 5)
+GRU h: [-0.0618359, -0.315901, 0.274827, -0.0130877, 0.150302, 0.459158, 0.0839139, -0.274271, 0.225491, -0.197983]
+(size: 10)
+Linear x: [-0.302049]
+(size: 1)
 Output: -0.302049
 Will use average of 100 iterations.
 Benchmarking Pure oneMKL C++ model...
@@ -33,7 +45,21 @@ $1 = 2
 
 ```bash
 python python_load.py
-tensor([[-0.1297]], grad_fn=<AddmmBackward0>)
+x: tensor([[[1., 1., 1., 1., 1.]]])
+h: tensor([[[1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]],
+
+        [[1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]]])
+Batch Norm: tensor([[[1.0000, 1.0000, 1.0000, 1.0000, 1.0000]]],
+       grad_fn=<UnsqueezeBackward0>)
+GRU x: tensor([[[ 0.3525,  0.7142,  0.2723,  0.4367, -0.0280,  0.9293,  0.7255,
+           0.1220,  0.9522,  0.4537]]], grad_fn=<TransposeBackward1>)
+GRU h: tensor([[[ 0.4954,  0.2043,  0.4286,  0.6808,  0.3849,  0.7889,  0.6873,
+           0.6005,  0.8363,  0.3157]],
+
+        [[ 0.3525,  0.7142,  0.2723,  0.4367, -0.0280,  0.9293,  0.7255,
+           0.1220,  0.9522,  0.4537]]], grad_fn=<StackBackward0>)
+Linear x: tensor([[1.1921]], grad_fn=<AddmmBackward0>)
+tensor([[1.1921]], grad_fn=<AddmmBackward0>)
 ```
 
 => BUG: Currently Python single step result is not align with C++ version

@@ -25,9 +25,15 @@ class SingleStepLSTMRegression(nn.Module):
     def forward(
         self, x: torch.Tensor, h: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
+        print("x:", x)
+        print("h:", h)
         x = self.batch_norm(x.squeeze(1)).unsqueeze(1)
+        print("Batch Norm:", x)
         x, h = self.lstm(x, h)
+        print("GRU x:", x)
+        print("GRU h:", h)
         x = self.linear(x.squeeze(1))
+        print("Linear x:", x)
         return x, h
 
     def init_hidden(self, batch_size: int) -> torch.Tensor:
@@ -64,6 +70,6 @@ if __name__ == "__main__":
     single_step_model.eval()
 
     x = torch.ones(feature_dim).unsqueeze(0).unsqueeze(0)
-    h = torch.zeros(num_layers, 1, hidden_size)
+    h = torch.ones(num_layers, 1, hidden_size)
     output = single_step_model(x, h)
     print(output[0])

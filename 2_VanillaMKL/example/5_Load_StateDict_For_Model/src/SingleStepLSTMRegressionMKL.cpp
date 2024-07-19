@@ -78,9 +78,14 @@ std::tuple<std::vector<float>, std::vector<float>> SingleStepLSTMRegressionMKL::
         current_h = new_h;
     }
 
+    debug_vector(x_copy, "GRU x");
+    debug_vector(new_h, "GRU h");
+
     std::vector<float> output(1);
     cblas_sgemv(CblasRowMajor, CblasNoTrans, 1, hidden_size, 1.0, linear_weights.data(), hidden_size, new_h.data(), 1, 0.0, output.data(), 1);
     output[0] += linear_biases[0];
+
+    debug_vector(output, "Linear x");
 
     return std::make_tuple(output, new_h);
 }
