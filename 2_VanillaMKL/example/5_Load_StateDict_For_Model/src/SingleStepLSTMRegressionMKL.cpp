@@ -90,21 +90,22 @@ void SingleStepLSTMRegressionMKL::load_state_dict(const std::string &json_str)
 
     debug_vector(batch_norm_gamma, "batch_norm.weight");
 
-    /*
     for (int layer = 0; layer < num_layers; ++layer)
     {
-        std::vector<float> ih = load_vector(root["lstm.weight_ih_l" + std::to_string(layer)]);
-        std::vector<float> hh = load_vector(root["lstm.weight_hh_l" + std::to_string(layer)]);
-        lstm_weights[layer].assign(ih.begin(), ih.end());
-        lstm_weights[layer].insert(lstm_weights[layer].end(), hh.begin(), hh.end());
+        std::vector<std::vector<float>> ih = load_matrix(root["lstm.weight_ih_l" + std::to_string(layer)]);
+        std::vector<std::vector<float>> hh = load_matrix(root["lstm.weight_hh_l" + std::to_string(layer)]);
+        debug_matrix(ih, "lstm.weight_ih_l" + std::to_string(layer));
+        // lstm_weights[layer].assign(ih.begin(), ih.end());
+        // https://cplusplus.com/reference/vector/vector/insert/
+        // lstm_weights[layer].insert(lstm_weights[layer].end(), hh.begin(), hh.end());
 
         std::vector<float> bias_ih = load_vector(root["lstm.bias_ih_l" + std::to_string(layer)]);
         std::vector<float> bias_hh = load_vector(root["lstm.bias_hh_l" + std::to_string(layer)]);
-        lstm_biases[layer].assign(bias_ih.begin(), bias_ih.end());
-        lstm_biases[layer].insert(lstm_biases[layer].end(), bias_hh.begin(), bias_hh.end());
+        // lstm_biases[layer].assign(bias_ih.begin(), bias_ih.end());
+        // lstm_biases[layer].insert(lstm_biases[layer].end(), bias_hh.begin(), bias_hh.end());
     }
 
     linear_weights = load_vector(root["linear.weight"][0]);
     linear_biases = load_vector(root["linear.bias"]);
-    */
+    debug_vector(linear_biases, "linear.bias");
 }

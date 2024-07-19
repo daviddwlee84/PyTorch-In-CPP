@@ -18,6 +18,33 @@ std::vector<float> load_vector(const json &j)
 {
     return j.get<std::vector<float>>();
 }
+/*
+{
+    try
+    {
+        // Check if the JSON is an array
+        if (j.is_array())
+        {
+            return j.get<std::vector<float>>();
+        }
+        // If it's not an array, try to get it as a single float
+        else if (j.is_number())
+        {
+            return {j.get<float>()};
+        }
+        else
+        {
+            throw std::runtime_error("Unsupported JSON type for vector loading");
+        }
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "Error: " << e.what() << '\n';
+        // Return a vector initialized with one element as a fallback
+        return {0.0f};
+    }
+}
+*/
 
 // Function to load a matrix from JSON
 std::vector<std::vector<float>> load_matrix(const json &j)
