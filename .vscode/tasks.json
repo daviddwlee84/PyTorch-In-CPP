@@ -7,9 +7,21 @@
             "label": "Build Pure Json Example",
             "type": "shell",
             "command": "/usr/bin/make",
+            "args": [
+                "clean",
+                "debug"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}/2_VanillaMKL/example/1_PureJson"
-            }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "detail": "Build Project"
         },
         {
             "label": "Build Torch Tensor Example",

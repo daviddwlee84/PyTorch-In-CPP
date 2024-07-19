@@ -43,6 +43,13 @@ sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 60 --slave /
 - [software installation - How do I use the latest GCC on Ubuntu? - Ask Ubuntu](https://askubuntu.com/questions/466651/how-do-i-use-the-latest-gcc-on-ubuntu)
 - [ppa - install gcc-9 on Ubuntu 18.04? - Ask Ubuntu](https://askubuntu.com/questions/1140183/install-gcc-9-on-ubuntu-18-04)
 
+- GDB (optional)
+
+```bash
+sudo apt update
+sudo apt install gdb
+```
+
 > TODO: `clang`..?
 
 ## 1. TorchScript

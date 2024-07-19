@@ -1,0 +1,36 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "2_VanillaMKL/example/1_PureJson",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/2_VanillaMKL/example/1_PureJson/create_json", // Adjust the path
+            "args": [], // Add any command line arguments here
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/2_VanillaMKL/example/1_PureJson",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "Build Pure Json Example", // Define a task to build the project
+            "miDebuggerPath": "/usr/bin/gdb", // Adjust to your gdb path
+            "logging": {
+                "trace": true,
+                "traceResponse": true,
+                "engineLogging": true,
+                "programOutput": true,
+                "exceptions": true
+            }
+        }
+    ]
+}
