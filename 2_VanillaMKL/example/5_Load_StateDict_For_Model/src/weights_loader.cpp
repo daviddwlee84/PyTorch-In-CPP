@@ -69,6 +69,7 @@ void debug_vector(const std::vector<float> &vec, const std::string &name)
         }
     }
     std::cout << "]" << std::endl;
+    std::cout << "(size: " << vec.size() << ")" << std::endl;
 }
 
 // Function to debug and print std::vector<std::vector<float>>
@@ -97,4 +98,5 @@ void debug_matrix(const std::vector<std::vector<float>> &mat, const std::string 
         }
     }
     std::cout << "\n]" << std::endl;
+    std::cout << "(size: " << mat.size() << ", " << mat[0].size() << ")" << std::endl;
 }

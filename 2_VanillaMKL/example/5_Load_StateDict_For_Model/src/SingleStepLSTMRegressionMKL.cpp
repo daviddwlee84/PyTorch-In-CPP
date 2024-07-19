@@ -95,8 +95,10 @@ void SingleStepLSTMRegressionMKL::load_state_dict(const std::string &json_str)
         std::vector<std::vector<float>> ih = load_matrix(root["lstm.weight_ih_l" + std::to_string(layer)]);
         std::vector<std::vector<float>> hh = load_matrix(root["lstm.weight_hh_l" + std::to_string(layer)]);
         debug_matrix(ih, "lstm.weight_ih_l" + std::to_string(layer));
+        // https://stackoverflow.com/questions/2119177/stl-vector-assign-vs-insert
         // lstm_weights[layer].assign(ih.begin(), ih.end());
         // https://cplusplus.com/reference/vector/vector/insert/
+        // https://www.digitalocean.com/community/tutorials/vector-insert-in-c-plus-plus
         // lstm_weights[layer].insert(lstm_weights[layer].end(), hh.begin(), hh.end());
 
         std::vector<float> bias_ih = load_vector(root["lstm.bias_ih_l" + std::to_string(layer)]);
