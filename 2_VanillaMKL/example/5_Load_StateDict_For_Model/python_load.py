@@ -70,6 +70,6 @@ if __name__ == "__main__":
     single_step_model.eval()
 
     x = torch.ones(feature_dim).unsqueeze(0).unsqueeze(0)
-    h = torch.ones(num_layers, 1, hidden_size)
+    h = torch.zeros(num_layers, 1, hidden_size)
     output = single_step_model(x, h)
     print(output[0])
