@@ -66,7 +66,6 @@ int main(int argc, const char *argv[])
     // Initialize model weights from JSON state_dict
     model.load_state_dict(state_dict.dump());
 
-    /*
     auto output = model.forward(input, h);
 
     std::cout << "Output: " << std::get<0>(output)[0] << std::endl; // Print output tensor
@@ -84,7 +83,6 @@ int main(int argc, const char *argv[])
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> diff = end - start;
     std::cout << "Inference time: " << diff.count() / iterations << " seconds" << std::endl;
-    */
 
     return 0;
 }

@@ -39,8 +39,11 @@ void SingleStepLSTMRegressionMKL::gru_cell(const std::vector<float> &x, const st
     std::vector<float> r(hidden_size);
     std::vector<float> n(hidden_size);
 
+    // Update gate
     cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, hidden_size, 1, feature_dim, 1.0, lstm_weights[layer].data(), feature_dim, x.data(), 1, 0.0, z.data(), 1);
+    // Reset gate
     cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, hidden_size, 1, feature_dim, 1.0, lstm_weights[layer].data() + hidden_size * feature_dim, feature_dim, x.data(), 1, 0.0, r.data(), 1);
+    // New gate
     cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, hidden_size, 1, feature_dim, 1.0, lstm_weights[layer].data() + 2 * hidden_size * feature_dim, feature_dim, x.data(), 1, 0.0, n.data(), 1);
 
     for (int64_t i = 0; i < hidden_size; ++i)
@@ -49,9 +52,9 @@ void SingleStepLSTMRegressionMKL::gru_cell(const std::vector<float> &x, const st
         r[i] += lstm_biases[layer][i + hidden_size];
         n[i] += lstm_biases[layer][i + 2 * hidden_size];
 
-        z[i] = 1.0 / (1.0 + exp(-z[i]));
-        r[i] = 1.0 / (1.0 + exp(-r[i]));
-        n[i] = tanh(n[i] + r[i] * h[i]);
+        z[i] = 1.0 / (1.0 + exp(-z[i])); // sigmoid
+        r[i] = 1.0 / (1.0 + exp(-r[i])); // sigmoid
+        n[i] = tanh(n[i] + r[i] * h[i]); // sigmoid
 
         new_h[i] = (1 - z[i]) * n[i] + z[i] * h[i];
     }
@@ -92,18 +95,30 @@ void SingleStepLSTMRegressionMKL::load_state_dict(const std::string &json_str)
 
     for (int layer = 0; layer < num_layers; ++layer)
     {
+        /* Debug
         std::vector<std::vector<float>> ih = load_matrix(root["lstm.weight_ih_l" + std::to_string(layer)]);
         std::vector<std::vector<float>> hh = load_matrix(root["lstm.weight_hh_l" + std::to_string(layer)]);
         debug_matrix(ih, "lstm.weight_ih_l" + std::to_string(layer));
 
         std::vector<float> ih_vector = load_matrix_to_vector(root["lstm.weight_ih_l" + std::to_string(layer)]);
         debug_flatten_matrix(ih_vector, ih.front().size(), "Flattened Matrix lstm.weight_ih_l" + std::to_string(layer));
+        */
+
+        std::vector<float> ih = load_matrix_to_vector(root["lstm.weight_ih_l" + std::to_string(layer)]);
+        std::vector<float> hh = load_matrix_to_vector(root["lstm.weight_hh_l" + std::to_string(layer)]);
+        debug_flatten_matrix(ih, hidden_size, "Flattened Matrix lstm.weight_ih_l" + std::to_string(layer));
+
+        /* Alternatives
+        lstm_weights[layer].clear();
+        lstm_weights[layer].insert(lstm_weights[layer].end(), ih.begin(), ih.end());
+        lstm_weights[layer].insert(lstm_weights[layer].end(), hh.begin(), hh.end());
+        */
 
         // https://stackoverflow.com/questions/2119177/stl-vector-assign-vs-insert
-        // lstm_weights[layer].assign(ih.begin(), ih.end());
+        lstm_weights[layer].assign(ih.begin(), ih.end());
         // https://cplusplus.com/reference/vector/vector/insert/
         // https://www.digitalocean.com/community/tutorials/vector-insert-in-c-plus-plus
-        // lstm_weights[layer].insert(lstm_weights[layer].end(), hh.begin(), hh.end());
+        lstm_weights[layer].insert(lstm_weights[layer].end(), hh.begin(), hh.end());
 
         std::vector<float> bias_ih = load_vector(root["lstm.bias_ih_l" + std::to_string(layer)]);
         std::vector<float> bias_hh = load_vector(root["lstm.bias_hh_l" + std::to_string(layer)]);
