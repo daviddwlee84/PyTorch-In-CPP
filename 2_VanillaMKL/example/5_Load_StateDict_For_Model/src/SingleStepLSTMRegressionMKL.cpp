@@ -95,6 +95,10 @@ void SingleStepLSTMRegressionMKL::load_state_dict(const std::string &json_str)
         std::vector<std::vector<float>> ih = load_matrix(root["lstm.weight_ih_l" + std::to_string(layer)]);
         std::vector<std::vector<float>> hh = load_matrix(root["lstm.weight_hh_l" + std::to_string(layer)]);
         debug_matrix(ih, "lstm.weight_ih_l" + std::to_string(layer));
+
+        std::vector<float> ih_vector = load_matrix_to_vector(root["lstm.weight_ih_l" + std::to_string(layer)]);
+        debug_flatten_matrix(ih_vector, ih.front().size(), "Flattened Matrix lstm.weight_ih_l" + std::to_string(layer));
+
         // https://stackoverflow.com/questions/2119177/stl-vector-assign-vs-insert
         // lstm_weights[layer].assign(ih.begin(), ih.end());
         // https://cplusplus.com/reference/vector/vector/insert/
@@ -103,8 +107,8 @@ void SingleStepLSTMRegressionMKL::load_state_dict(const std::string &json_str)
 
         std::vector<float> bias_ih = load_vector(root["lstm.bias_ih_l" + std::to_string(layer)]);
         std::vector<float> bias_hh = load_vector(root["lstm.bias_hh_l" + std::to_string(layer)]);
-        // lstm_biases[layer].assign(bias_ih.begin(), bias_ih.end());
-        // lstm_biases[layer].insert(lstm_biases[layer].end(), bias_hh.begin(), bias_hh.end());
+        lstm_biases[layer].assign(bias_ih.begin(), bias_ih.end());
+        lstm_biases[layer].insert(lstm_biases[layer].end(), bias_hh.begin(), bias_hh.end());
     }
 
     linear_weights = load_vector(root["linear.weight"][0]);

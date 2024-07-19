@@ -52,6 +52,18 @@ std::vector<std::vector<float>> load_matrix(const json &j)
     return j.get<std::vector<std::vector<float>>>();
 }
 
+// Function to load a flattened matrix from JSON
+std::vector<float> load_matrix_to_vector(const json &j)
+{
+    std::vector<std::vector<float>> matrix = load_matrix(j);
+    std::vector<float> flattened;
+    for (const auto &row : matrix)
+    {
+        flattened.insert(flattened.end(), row.begin(), row.end());
+    }
+    return flattened;
+}
+
 // Function to debug and print std::vector<float>
 void debug_vector(const std::vector<float> &vec, const std::string &name)
 {
@@ -99,4 +111,37 @@ void debug_matrix(const std::vector<std::vector<float>> &mat, const std::string 
     }
     std::cout << "\n]" << std::endl;
     std::cout << "(size: " << mat.size() << ", " << mat[0].size() << ")" << std::endl;
+}
+
+void debug_flatten_matrix(const std::vector<float> &flattened_matrix, int num_cols, const std::string &name)
+{
+    if (!name.empty())
+    {
+        std::cout << name << ":\n";
+    }
+
+    int num_rows = flattened_matrix.size() / num_cols;
+
+    std::cout << "[\n";
+    for (int i = 0; i < num_rows; ++i)
+    {
+        std::cout << "  [";
+        for (int j = 0; j < num_cols; ++j)
+        {
+            // std::cout << std::setw(10) << flattened_matrix[i * num_cols + j] << " ";
+            std::cout << flattened_matrix[i * num_cols + j];
+            if (j < num_cols - 1)
+            {
+                std::cout << ", ";
+            }
+        }
+        std::cout << "]";
+        if (i < num_rows - 1)
+        {
+            std::cout << ",\n";
+        }
+    }
+    std::cout << "\n]" << std::endl;
+    std::cout << "(size: " << flattened_matrix.size() << ")" << std::endl;
+    std::cout << "(convert size: " << num_rows << ", " << num_cols << ")" << std::endl;
 }
