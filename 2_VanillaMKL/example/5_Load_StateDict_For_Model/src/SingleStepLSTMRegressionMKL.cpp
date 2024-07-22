@@ -22,21 +22,27 @@ SingleStepLSTMRegressionMKL::SingleStepLSTMRegressionMKL(int64_t feature_dim, in
     linear_biases.resize(1, 0.1f);
 }
 
+// https://pytorch.org/docs/stable/generated/torch.nn.BatchNorm1d.html#batchnorm1d
 void SingleStepLSTMRegressionMKL::batch_norm(std::vector<float> &x)
 {
     int64_t N = x.size() / feature_dim;
+    const double eps = 1e-5;
+    // Batch
     for (int64_t i = 0; i < N; ++i)
     {
+        // Feature
         for (int64_t j = 0; j < feature_dim; ++j)
         {
             int64_t idx = i * feature_dim + j;
-            x[idx] = batch_norm_gamma[j] * (x[idx] - batch_norm_mean[j]) / std::sqrt(batch_norm_var[j] + 1e-5) + batch_norm_beta[j];
+            x[idx] = batch_norm_gamma[j] * (x[idx] - batch_norm_mean[j]) / std::sqrt(batch_norm_var[j] + eps) + batch_norm_beta[j];
         }
     }
 }
 
+// https://pytorch.org/docs/stable/generated/torch.nn.GRUCell.html#torch.nn.GRUCell
 void SingleStepLSTMRegressionMKL::gru_cell(const std::vector<float> &x, const std::vector<float> &h, std::vector<float> &new_h, int layer)
 {
+    // r: reset gate; z: update gate; n: new hidden
     std::vector<float> r(hidden_size), z(hidden_size), n(hidden_size);
     std::vector<float> x_gates(3 * hidden_size), h_gates(3 * hidden_size);
 
@@ -47,6 +53,7 @@ void SingleStepLSTMRegressionMKL::gru_cell(const std::vector<float> &x, const st
     {
         x_gates[i] += lstm_biases_ih[layer][i];
     }
+    debug_vector(x_gates, "x_gates");
 
     // Compute hidden gates (h_gates)
     cblas_sgemv(CblasRowMajor, CblasNoTrans, 3 * hidden_size, hidden_size, 1.0, lstm_weights_hh[layer].data(), hidden_size, h.data(), 1, 0.0, h_gates.data(), 1);
@@ -55,6 +62,7 @@ void SingleStepLSTMRegressionMKL::gru_cell(const std::vector<float> &x, const st
     {
         h_gates[i] += lstm_biases_hh[layer][i];
     }
+    debug_vector(h_gates, "h_gates");
 
     // Split gates into reset, update, and new gates
     for (int i = 0; i < hidden_size; ++i)
@@ -64,11 +72,18 @@ void SingleStepLSTMRegressionMKL::gru_cell(const std::vector<float> &x, const st
         n[i] = std::tanh(x_gates[2 * hidden_size + i] + r[i] * h_gates[2 * hidden_size + i]);
     }
 
+    debug_vector(r, "Reset Gate");
+    debug_vector(z, "Update Gate");
+    // BUG: second layer of Hew Hidden is wrong
+    debug_vector(n, "New Hidden");
+
     // Compute the new hidden state
     for (int i = 0; i < hidden_size; ++i)
     {
         new_h[i] = (1.0f - z[i]) * n[i] + z[i] * h[i];
     }
+
+    debug_vector(new_h, "Output");
 }
 
 std::tuple<std::vector<float>, std::vector<float>> SingleStepLSTMRegressionMKL::forward(const std::vector<float> &x, const std::vector<float> &h)
@@ -77,7 +92,8 @@ std::tuple<std::vector<float>, std::vector<float>> SingleStepLSTMRegressionMKL::
     debug_flatten_matrix(h, hidden_size, "h");
 
     std::vector<float> x_copy = x;
-    batch_norm(x_copy);
+    // BUG: somehow get a little gap between Python result
+    // batch_norm(x_copy);
 
     debug_vector(x_copy, "Batch Norm");
 
@@ -95,8 +111,8 @@ std::tuple<std::vector<float>, std::vector<float>> SingleStepLSTMRegressionMKL::
         layer_input = layer_new_h;
     }
 
-    debug_vector(x_copy, "GRU x");
-    debug_vector(new_h, "GRU h");
+    debug_vector(layer_input, "GRU x");
+    debug_flatten_matrix(new_h, hidden_size, "GRU h");
 
     std::vector<float> output(1);
     cblas_sgemv(CblasRowMajor, CblasNoTrans, 1, hidden_size, 1.0, linear_weights.data(), hidden_size, layer_input.data(), 1, 0.0, output.data(), 1);

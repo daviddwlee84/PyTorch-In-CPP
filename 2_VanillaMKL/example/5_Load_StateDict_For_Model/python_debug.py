@@ -21,7 +21,9 @@ class GRUCell(nn.Module):
 
     def forward(self, x: torch.Tensor, h: torch.Tensor) -> torch.Tensor:
         x_gates = F.linear(x, self.weight_ih, self.bias_ih)
+        print("x_gates:", x_gates, x_gates.shape)
         h_gates = F.linear(h, self.weight_hh, self.bias_hh)
+        print("h_gates:", h_gates, h_gates.shape)
 
         # https://pytorch.org/docs/stable/generated/torch.chunk.html
         x_r, x_z, x_n = x_gates.chunk(3, 2)
@@ -31,6 +33,12 @@ class GRUCell(nn.Module):
         update_gate = torch.sigmoid(x_z + h_z)
         new_hidden = torch.tanh(x_n + reset_gate * h_n)
         h = (1 - update_gate) * new_hidden + update_gate * h
+
+        print("Reset Gate", reset_gate, reset_gate.shape)
+        print("Update Gate", update_gate, update_gate.shape)
+        print("New Hidden", new_hidden, new_hidden.shape)
+
+        print("Output", h, h.shape)
 
         return h
 
@@ -129,7 +137,7 @@ class SingleStepLSTMRegressionFromScratch(nn.Module):
 
 def _debug_shape(model: nn.Module) -> None:
     for name, param in model.state_dict().items():
-        print(name, param.shape)
+        print(name, param.shape, param.dtype)
 
 
 if __name__ == "__main__":
