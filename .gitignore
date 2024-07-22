@@ -12,6 +12,7 @@ build/
 1_TorchScript/example/6_Load_StateDict_Json/*.json
 2_VanillaMKL/example/5_Load_StateDict_For_Model/*.json
 others/glog/glog_*
+others/glog_gflags/glog_gflags_*
 
 # Prerequisites
 *.d

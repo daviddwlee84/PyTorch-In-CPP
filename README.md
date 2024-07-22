@@ -76,6 +76,15 @@ glog
 gflags
 
 - [gflags/INSTALL.md at master · gflags/gflags](https://github.com/gflags/gflags/blob/master/INSTALL.md)
+- [gflags - Conan 2.0: C and C++ Open Source Package Manager](https://conan.io/center/recipes/gflags?version=2.2.2)
+- [gflags/example: Example C++ project using the gflags library](https://github.com/gflags/example)
+
+> ```bash
+> git clone https://github.com/gflags/gflags.git
+> ... # the same
+> ```
+>
+> `sudo apt-get install libgflags-dev` (seems might already included in glog)
 
 ## 1. TorchScript
 
