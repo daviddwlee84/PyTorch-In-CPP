@@ -29,6 +29,11 @@ set(LINK_FLAGS "-fsycl -L${MKLROOT}/lib/intel64 -lmkl_sycl -lmkl_intel_ilp64 -lm
 add_executable(${TARGET_NAME} ${SOURCE_FILE})
 set_target_properties(${TARGET_NAME} PROPERTIES COMPILE_FLAGS "${COMPILE_FLAGS}")
 set_target_properties(${TARGET_NAME} PROPERTIES LINK_FLAGS "${LINK_FLAGS}")
+# Check the build type and add the DEBUG definition if Debug
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    # https://cmake.org/cmake/help/latest/command/target_compile_definitions.html
+    target_compile_definitions(${TARGET_NAME} PRIVATE DEBUG)
+endif()
 add_custom_target(cpu-gpu DEPENDS ${TARGET_NAME})
 
 #

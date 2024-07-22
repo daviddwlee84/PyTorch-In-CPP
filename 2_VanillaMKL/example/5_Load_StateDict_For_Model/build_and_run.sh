@@ -16,8 +16,8 @@ cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
 # Build the specified target using CMake
 cmake --build . --target cpu-gpu
 
-# Create state_dict.json
-python model.py
+# Create state_dict.json (path is not correct)
+# python ../model.py
 
 # Execute the compiled program with the specified argument
 ./load_and_run ../state_dict.json

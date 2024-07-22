@@ -19,11 +19,13 @@ all: $(EXEC)
 $(EXEC): $(SRC)
 	$(CXX) $(CXXFLAGS) -o $(EXEC) $(SRC)
 
-debug: $(EXEC)
-
+# debug: $(EXEC)
 # -g flag for debugging breakpoints to work
-$(EXEC): $(SRC)
-	$(CXX) $(CXXFLAGS) -g -o $(EXEC) $(SRC)
+# -DDEBUG for enable #ifdef DEBUG code blocks
+# $(EXEC): $(SRC)
+# 	$(CXX) $(CXXFLAGS) -DDEBUG -g -o $(EXEC) $(SRC)
+debug: CXXFLAGS += -DDEBUG -g
+debug: clean $(EXEC)
 
 # Clean the build directory
 clean:

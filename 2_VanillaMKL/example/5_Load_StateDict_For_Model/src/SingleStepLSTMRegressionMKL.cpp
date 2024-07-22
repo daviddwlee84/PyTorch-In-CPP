@@ -53,7 +53,9 @@ void SingleStepLSTMRegressionMKL::gru_cell(const std::vector<float> &x, const st
     {
         x_gates[i] += lstm_biases_ih[layer][i];
     }
+#ifdef DEBUG
     debug_vector(x_gates, "x_gates");
+#endif // DEBUG
 
     // Compute hidden gates (h_gates)
     cblas_sgemv(CblasRowMajor, CblasNoTrans, 3 * hidden_size, hidden_size, 1.0, lstm_weights_hh[layer].data(), hidden_size, h.data(), 1, 0.0, h_gates.data(), 1);
@@ -62,7 +64,9 @@ void SingleStepLSTMRegressionMKL::gru_cell(const std::vector<float> &x, const st
     {
         h_gates[i] += lstm_biases_hh[layer][i];
     }
+#ifdef DEBUG
     debug_vector(h_gates, "h_gates");
+#endif // DEBUG
 
     // Split gates into reset, update, and new gates
     for (int i = 0; i < hidden_size; ++i)
@@ -72,10 +76,12 @@ void SingleStepLSTMRegressionMKL::gru_cell(const std::vector<float> &x, const st
         n[i] = std::tanh(x_gates[2 * hidden_size + i] + r[i] * h_gates[2 * hidden_size + i]);
     }
 
+#ifdef DEBUG
     debug_vector(r, "Reset Gate");
     debug_vector(z, "Update Gate");
     // BUG: second layer of Hew Hidden is wrong
     debug_vector(n, "New Hidden");
+#endif // DEBUG
 
     // Compute the new hidden state
     for (int i = 0; i < hidden_size; ++i)
@@ -83,19 +89,25 @@ void SingleStepLSTMRegressionMKL::gru_cell(const std::vector<float> &x, const st
         new_h[i] = (1.0f - z[i]) * n[i] + z[i] * h[i];
     }
 
+#ifdef DEBUG
     debug_vector(new_h, "Output");
+#endif // DEBUG
 }
 
 std::tuple<std::vector<float>, std::vector<float>> SingleStepLSTMRegressionMKL::forward(const std::vector<float> &x, const std::vector<float> &h)
 {
+#ifdef DEBUG
     debug_vector(x, "x");
     debug_flatten_matrix(h, hidden_size, "h");
+#endif // DEBUG
 
     std::vector<float> x_copy = x;
     // BUG: somehow get a little gap between Python result
     // batch_norm(x_copy);
 
+#ifdef DEBUG
     debug_vector(x_copy, "Batch Norm");
+#endif // DEBUG
 
     std::vector<float> new_h(num_layers * hidden_size);
     std::vector<float> current_h = h;
@@ -111,14 +123,18 @@ std::tuple<std::vector<float>, std::vector<float>> SingleStepLSTMRegressionMKL::
         layer_input = layer_new_h;
     }
 
+#ifdef DEBUG
     debug_vector(layer_input, "GRU x");
     debug_flatten_matrix(new_h, hidden_size, "GRU h");
+#endif // DEBUG
 
     std::vector<float> output(1);
     cblas_sgemv(CblasRowMajor, CblasNoTrans, 1, hidden_size, 1.0, linear_weights.data(), hidden_size, layer_input.data(), 1, 0.0, output.data(), 1);
     output[0] += linear_biases[0];
 
+#ifdef DEBUG
     debug_vector(output, "Linear x");
+#endif // DEBUG
 
     return std::make_tuple(output, new_h);
 }
@@ -126,22 +142,29 @@ std::tuple<std::vector<float>, std::vector<float>> SingleStepLSTMRegressionMKL::
 void SingleStepLSTMRegressionMKL::load_state_dict(const std::string &json_str)
 {
     json root = json::parse(json_str);
+#ifdef DEBUG
     std::cout << json_str << std::endl;
     std::cout << root << std::endl;
+#endif // DEBUG
 
     batch_norm_gamma = load_vector(root["batch_norm.weight"]);
     batch_norm_beta = load_vector(root["batch_norm.bias"]);
     batch_norm_mean = load_vector(root["batch_norm.running_mean"]);
     batch_norm_var = load_vector(root["batch_norm.running_var"]);
 
+#ifdef DEBUG
     debug_vector(batch_norm_gamma, "batch_norm.weight");
+#endif // DEBUG
 
     for (int layer = 0; layer < num_layers; ++layer)
     {
         std::vector<float> ih = load_matrix_to_vector(root["lstm.weight_ih_l" + std::to_string(layer)]);
         std::vector<float> hh = load_matrix_to_vector(root["lstm.weight_hh_l" + std::to_string(layer)]);
+#ifdef DEBUG
         debug_flatten_matrix(ih, hidden_size, "Flattened Matrix lstm.weight_ih_l" + std::to_string(layer));
-        // https://stackoverflow.com/questions/2119177/stl-vector-assign-vs-insert
+        debug_flatten_matrix(hh, hidden_size, "Flattened Matrix lstm.weight_hh_l" + std::to_string(layer));
+#endif // DEBUG
+       // https://stackoverflow.com/questions/2119177/stl-vector-assign-vs-insert
         lstm_weights_ih[layer].assign(ih.begin(), ih.end());
         // https://cplusplus.com/reference/vector/vector/insert/
         // https://www.digitalocean.com/community/tutorials/vector-insert-in-c-plus-plus
@@ -160,5 +183,7 @@ void SingleStepLSTMRegressionMKL::load_state_dict(const std::string &json_str)
 
     linear_weights = load_vector(root["linear.weight"][0]);
     linear_biases = load_vector(root["linear.bias"]);
+#ifdef DEBUG
     debug_vector(linear_biases, "linear.bias");
+#endif // DEBUG
 }
