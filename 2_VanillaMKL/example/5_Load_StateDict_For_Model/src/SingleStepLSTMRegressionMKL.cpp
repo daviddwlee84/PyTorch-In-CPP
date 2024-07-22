@@ -33,6 +33,7 @@ void SingleStepLSTMRegressionMKL::batch_norm(std::vector<float> &x)
     }
 }
 
+// TODO: fix this
 void SingleStepLSTMRegressionMKL::gru_cell(const std::vector<float> &x, const std::vector<float> &h, std::vector<float> &new_h, int layer)
 {
     std::vector<float> z(hidden_size);

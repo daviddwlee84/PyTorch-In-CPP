@@ -25,15 +25,15 @@ class SingleStepLSTMRegression(nn.Module):
     def forward(
         self, x: torch.Tensor, h: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        print("x:", x)
-        print("h:", h)
+        print("x:", x, x.shape)
+        print("h:", h, h.shape)
         x = self.batch_norm(x.squeeze(1)).unsqueeze(1)
-        print("Batch Norm:", x)
+        print("Batch Norm:", x, x.shape)
         x, h = self.lstm(x, h)
-        print("GRU x:", x)
-        print("GRU h:", h)
+        print("GRU x:", x, x.shape)
+        print("GRU h:", h, h.shape)
         x = self.linear(x.squeeze(1))
-        print("Linear x:", x)
+        print("Linear x:", x, x.shape)
         return x, h
 
     def init_hidden(self, batch_size: int) -> torch.Tensor:

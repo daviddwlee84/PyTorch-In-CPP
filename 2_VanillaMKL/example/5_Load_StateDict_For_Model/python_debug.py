@@ -5,105 +5,30 @@ import torch.nn.functional as F
 
 
 class GRUCell(nn.Module):
-
     def __init__(self, input_dim, hidden_dim) -> None:
         super(GRUCell, self).__init__()
         self.input_dim, self.hidden_dim = input_dim, hidden_dim
-        self.relevance_whh, self.relevance_wxh, self.relevance_b = (
-            self.create_gate_parameters()
-        )
-        self.update_whh, self.update_wxh, self.update_b = self.create_gate_parameters()
-        self.candidate_whh, self.candidate_wxh, self.candidate_b = (
-            self.create_gate_parameters()
-        )
+        self.weight_ih = nn.Parameter(torch.zeros(3 * hidden_dim, input_dim))
+        self.weight_hh = nn.Parameter(torch.zeros(3 * hidden_dim, hidden_dim))
+        self.bias_ih = nn.Parameter(torch.zeros(3 * hidden_dim))
+        self.bias_hh = nn.Parameter(torch.zeros(3 * hidden_dim))
+        nn.init.xavier_uniform_(self.weight_ih)
+        nn.init.xavier_uniform_(self.weight_hh)
 
-    def create_gate_parameters(self) -> Tuple[nn.Parameter, nn.Parameter, nn.Parameter]:
-        input_weights = nn.Parameter(torch.zeros(self.input_dim, self.hidden_dim))
-        hidden_weights = nn.Parameter(torch.zeros(self.hidden_dim, self.hidden_dim))
-        nn.init.xavier_uniform_(input_weights)
-        nn.init.xavier_uniform_(hidden_weights)
-        bias = nn.Parameter(torch.zeros(self.hidden_dim))
-        return hidden_weights, input_weights, bias
+    def forward(self, x: torch.Tensor, h: torch.Tensor) -> torch.Tensor:
+        x_gates = F.linear(x, self.weight_ih, self.bias_ih)
+        h_gates = F.linear(h, self.weight_hh, self.bias_hh)
 
-    def forward(
-        self, x: torch.Tensor, h: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        output_hiddens = []
-        for i in range(x.shape[1]):
-            relevance_gate = F.sigmoid(
-                (h @ self.relevance_whh)
-                + (x[:, i] @ self.relevance_wxh)
-                + self.relevance_b
-            )
-            update_gate = F.sigmoid(
-                (h @ self.update_whh) + (x[:, i] @ self.update_wxh) + self.update_b
-            )
-            candidate_hidden = F.tanh(
-                ((relevance_gate * h) @ self.candidate_whh)
-                + (x[:, i] @ self.candidate_wxh)
-                + self.candidate_b
-            )
-            h = (update_gate * candidate_hidden) + ((1 - update_gate) * h)
-            output_hiddens.append(h.unsqueeze(1))
-        return torch.concat(output_hiddens, dim=1)
+        # https://pytorch.org/docs/stable/generated/torch.chunk.html
+        x_r, x_z, x_n = x_gates.chunk(3, 2)
+        h_r, h_z, h_n = h_gates.chunk(3, 1)
 
+        reset_gate = torch.sigmoid(x_r + h_r)
+        update_gate = torch.sigmoid(x_z + h_z)
+        new_hidden = torch.tanh(x_n + reset_gate * h_n)
+        h = (1 - update_gate) * new_hidden + update_gate * h
 
-"""
-class MultiLayerGRU(nn.Module):
-
-    def __init__(
-        self, input_dim: int, hidden_dim: int, num_layers: int, dropout: float = 0.0
-    ):
-        super(MultiLayerGRU, self).__init__()
-        self.input_dim, self.hidden_dim, self.num_layers = (
-            input_dim,
-            hidden_dim,
-            num_layers,
-        )
-        self.layers = nn.ModuleList()
-        self.layers.append(GRUCell(input_dim, hidden_dim))
-        for _ in range(num_layers - 1):
-            self.layers.append(GRUCell(hidden_dim, hidden_dim))
-        self.dropout = nn.Dropout(dropout)
-        self.linear = nn.Linear(hidden_dim, 1)
-        nn.init.xavier_uniform_(self.linear.weight.data)
-        self.linear.bias.data.fill_(0.0)
-
-    def forward(
-        self, x: torch.Tensor, h: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        output_hidden = self.layers[0](x, h[0])
-        new_hidden = [output_hidden[:, -1].unsqueeze(0)]
-        for i in range(1, self.num_layers):
-            output_hidden = self.layers[i](self.dropout(output_hidden), h[i])
-            new_hidden.append(output_hidden[:, -1].unsqueeze(0))
-        print("GRU x:", output_hidden[:, -1].unsqueeze(1))
-        print("GRU h:", h)
-        return self.linear(self.dropout(output_hidden[:, -1].unsqueeze(1))).squeeze(
-            1
-        ), torch.concat(new_hidden, dim=0)
-
-
-class SingleStepLSTMRegressionFromScratch(nn.Module):
-    def __init__(self, feature_dim: int, hidden_size: int, num_layers: int):
-        super(SingleStepLSTMRegressionFromScratch, self).__init__()
-        self.batch_norm = nn.BatchNorm1d(feature_dim)
-        self.gru = MultiLayerGRU(feature_dim, hidden_size, num_layers)
-
-    def forward(
-        self, x: torch.Tensor, h: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        print("x:", x)
-        print("h:", h)
-        x = self.batch_norm(x.squeeze(1)).unsqueeze(1)
-        print("Batch Norm:", x)
-        x, h = self.gru(x, h)
-        print("Linear x:", x)
-        return x, h
-
-    def init_hidden(self, batch_size: int) -> torch.Tensor:
-        return torch.zeros(self.gru.num_layers, batch_size, self.gru.hidden_dim)
-"""
+        return h
 
 
 class MultiLayerGRU(nn.Module):
@@ -122,10 +47,15 @@ class MultiLayerGRU(nn.Module):
             self.layers.append(GRUCell(hidden_dim, hidden_dim))
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, x, h):
-        output_hidden, h[0] = self.layers[0](x, h[0])
-        for i in range(1, self.num_layers):
-            output_hidden, h[i] = self.layers[i](self.dropout(output_hidden), h[i])
+    def forward(
+        self, x: torch.Tensor, h: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        output_hidden = x
+        for i in range(self.num_layers):
+            h[i] = self.layers[i](output_hidden, h[i])
+            output_hidden = h[i].unsqueeze(0)
+            if i < self.num_layers - 1:
+                output_hidden = self.dropout(output_hidden)
         return output_hidden, h
 
 
@@ -139,112 +69,63 @@ class SingleStepLSTMRegressionFromScratch(nn.Module):
     def forward(
         self, x: torch.Tensor, h: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
+        print("x:", x, x.shape)
+        print("h:", h, h.shape)
         x = self.batch_norm(x.squeeze(1)).unsqueeze(1)
+        print("Batch Norm:", x, x.shape)
         x, h = self.gru(x, h)
+        print("GRU x:", x, x.shape)
+        print("GRU h:", h, h.shape)
         x = self.linear(x[:, -1])
+        print("Linear x:", x, x.shape)
         return x, h
 
     def init_hidden(self, batch_size: int) -> torch.Tensor:
         return torch.zeros(self.gru.num_layers, batch_size, self.gru.hidden_dim)
-
-    # def custom_load_state_dict(self, state_dict: dict) -> None:
-    #     own_state = self.state_dict()
-    #     for name, param in state_dict.items():
-    #         import ipdb; ipdb.set_trace()
-    #         if name.startswith("lstm"):
-    #             layer_idx = int(name.split("_l")[1][0])
-    #             if "weight_ih" in name:
-    #                 param_name = f"gru.layers.{layer_idx}.relevance_wxh"
-    #             elif "weight_hh" in name:
-    #                 param_name = f"gru.layers.{layer_idx}.relevance_whh"
-    #             elif "bias_ih" in name:
-    #                 param_name = f"gru.layers.{layer_idx}.relevance_b"
-    #             elif "bias_hh" in name:
-    #                 param_name = f"gru.layers.{layer_idx}.update_b"
-    #             if param_name in own_state:
-    #                 own_state[param_name].copy_(param)
-    #         elif name.startswith("linear"):
-    #             param_name = f'linear.{name.split(".")[1]}'
-    #             if param_name in own_state:
-    #                 own_state[param_name].copy_(param)
-    #     self.load_state_dict(own_state)
-
-    # def custom_load_state_dict(self, state_dict: dict) -> None:
-    #     """
-    #     odict_keys(['batch_norm.weight', 'batch_norm.bias', 'batch_norm.running_mean', 'batch_norm.running_var', 'batch_norm.num_batches_tracked', 'gru.layers.0.relevance_whh', 'gru.layers.0.relevance_wxh', 'gru.layers.0.relevance_b', 'gru.layers.0.update_whh', 'gru.layers.0.update_wxh', 'gru.layers.0.update_b', 'gru.layers.0.candidate_whh', 'gru.layers.0.candidate_wxh', 'gru.layers.0.candidate_b', 'gru.layers.1.relevance_whh', 'gru.layers.1.relevance_wxh', 'gru.layers.1.relevance_b', 'gru.layers.1.update_whh', 'gru.layers.1.update_wxh', 'gru.layers.1.update_b', 'gru.layers.1.candidate_whh', 'gru.layers.1.candidate_wxh', 'gru.layers.1.candidate_b', 'linear.weight', 'linear.bias'])
-    #     dict_keys(['batch_norm.weight', 'batch_norm.bias', 'batch_norm.running_mean', 'batch_norm.running_var', 'batch_norm.num_batches_tracked', 'lstm.weight_ih_l0', 'lstm.weight_hh_l0', 'lstm.bias_ih_l0', 'lstm.bias_hh_l0', 'lstm.weight_ih_l1', 'lstm.weight_hh_l1', 'lstm.bias_ih_l1', 'lstm.bias_hh_l1', 'linear.weight', 'linear.bias'])
-    #     """
-    #     own_state = self.state_dict()
-    #     for name, param in state_dict.items():
-    #         if name.startswith("lstm"):
-    #             layer_idx = int(name.split("_l")[1][0])
-    #             if "weight_ih" in name:
-    #                 if "l0" in name:
-    #                     param_name = f"gru.layers.{layer_idx}.relevance_wxh"
-    #                 elif "l1" in name:
-    #                     param_name = f"gru.layers.{layer_idx}.update_wxh"
-    #             elif "weight_hh" in name:
-    #                 if "l0" in name:
-    #                     param_name = f"gru.layers.{layer_idx}.relevance_whh"
-    #                 elif "l1" in name:
-    #                     param_name = f"gru.layers.{layer_idx}.update_whh"
-    #             elif "bias_ih" in name:
-    #                 if "l0" in name:
-    #                     param_name = f"gru.layers.{layer_idx}.relevance_b"
-    #                 elif "l1" in name:
-    #                     param_name = f"gru.layers.{layer_idx}.update_b"
-    #             elif "bias_hh" in name:
-    #                 param_name = f"gru.layers.{layer_idx}.candidate_b"
-    #             import ipdb; ipdb.set_trace()
-    #             if param_name in own_state:
-    #                 own_state[param_name].copy_(param)
-    #         elif name.startswith("linear"):
-    #             param_name = f'linear.{name.split(".")[1]}'
-    #             if param_name in own_state:
-    #                 own_state[param_name].copy_(param)
-    #     self.load_state_dict(own_state)
 
     def custom_load_state_dict(self, state_dict: dict) -> None:
         own_state = self.state_dict()
         for name, param in state_dict.items():
             if name.startswith("lstm"):
                 layer_idx = int(name.split("_l")[1][0])
-                param_slices = [
-                    slice(0, self.gru.hidden_dim),
-                    slice(self.gru.hidden_dim, 2 * self.gru.hidden_dim),
-                    slice(2 * self.gru.hidden_dim, 3 * self.gru.hidden_dim),
-                ]
-                if "weight_ih" in name:
-                    for i, gate_name in enumerate(
-                        ["relevance_wxh", "update_wxh", "candidate_wxh"]
-                    ):
+                gate_slices = {
+                    "weight_ih": (slice(None), slice(None)),
+                    "weight_hh": (slice(None), slice(None)),
+                    "bias_ih": slice(None),
+                    "bias_hh": slice(None),
+                }
+                if "weight_ih" in name or "weight_hh" in name:
+                    gate_slices["weight_ih"] = (
+                        slice(0, 3 * self.gru.hidden_dim),
+                        (
+                            slice(0, self.gru.input_dim)
+                            if layer_idx == 0
+                            else slice(0, self.gru.hidden_dim)
+                        ),
+                    )
+                    gate_slices["weight_hh"] = (
+                        slice(0, 3 * self.gru.hidden_dim),
+                        slice(0, self.gru.hidden_dim),
+                    )
+                elif "bias_ih" in name or "bias_hh" in name:
+                    gate_slices["bias_ih"] = slice(0, 3 * self.gru.hidden_dim)
+                    gate_slices["bias_hh"] = slice(0, 3 * self.gru.hidden_dim)
+
+                for gate_name, slices in gate_slices.items():
+                    if gate_name in name:
                         param_name = f"gru.layers.{layer_idx}.{gate_name}"
                         if param_name in own_state:
-                            own_state[param_name].copy_(param[param_slices[i], :])
-                elif "weight_hh" in name:
-                    for i, gate_name in enumerate(
-                        ["relevance_whh", "update_whh", "candidate_whh"]
-                    ):
-                        param_name = f"gru.layers.{layer_idx}.{gate_name}"
-                        if param_name in own_state:
-                            own_state[param_name].copy_(param[param_slices[i], :])
-                elif "bias_ih" in name:
-                    for i, gate_name in enumerate(
-                        ["relevance_b", "update_b", "candidate_b"]
-                    ):
-                        param_name = f"gru.layers.{layer_idx}.{gate_name}"
-                        if param_name in own_state:
-                            own_state[param_name].copy_(param[param_slices[i]])
-                elif "bias_hh" in name:
-                    # PyTorch's GRU concatenates all biases, we only need the candidate_b for our custom model
-                    param_name = f"gru.layers.{layer_idx}.candidate_b"
-                    if param_name in own_state:
-                        own_state[param_name].copy_(param)
+                            own_state[param_name].copy_(param[slices])
             elif name.startswith("linear"):
                 param_name = f'linear.{name.split(".")[1]}'
                 if param_name in own_state:
                     own_state[param_name].copy_(param)
         self.load_state_dict(own_state)
+
+
+def _debug_shape(model: nn.Module) -> None:
+    for name, param in model.state_dict().items():
+        print(name, param.shape)
 
 
 if __name__ == "__main__":
@@ -278,6 +159,12 @@ if __name__ == "__main__":
     from_scratch_model = SingleStepLSTMRegressionFromScratch(
         feature_dim, hidden_size, num_layers
     )
+
+    print("=== Single Step Model (ideal) ===")
+    _debug_shape(single_step_model)
+    print("=== From Scratch Model ===")
+    _debug_shape(from_scratch_model)
+
     from_scratch_model.custom_load_state_dict(state_dict)
     from_scratch_model.eval()
 
