@@ -94,3 +94,12 @@ gflags
 - [microsoft/vcpkg: C++ Library Manager for Windows, Linux, and MacOS](https://github.com/Microsoft/vcpkg)
 - [conan-io/conan: Conan - The open-source C and C++ package manager](https://github.com/conan-io/conan)
   - [Build a simple CMake project using Conan — conan 2.5.0 documentation](https://docs.conan.io/2/tutorial/consuming_packages/build_simple_cmake_project.html)
+
+```bash
+# the very first time using conan
+conan profile detect
+
+# will install items in conanfile.txt
+# (haven't tested yet)
+conan install . --build=missing
+```

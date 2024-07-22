@@ -3,6 +3,7 @@ libtorch*
 
 # Generated Files
 2_VanillaMKL/example/1_PureJson/create_json
+build/
 **/*/build/
 *.pt
 2_VanillaMKL/example/4_Load_StateDict_Json/load_json
