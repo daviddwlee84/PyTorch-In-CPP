@@ -3,6 +3,7 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include "../include/weights_loader.h"
+#include <glog/logging.h>
 
 using json = nlohmann::json;
 
@@ -179,8 +180,11 @@ void SingleStepLSTMRegressionMKL::load_state_dict(const std::string &json_str)
     {
         std::vector<float> ih = load_matrix_to_vector(root["lstm.weight_ih_l" + std::to_string(layer)]);
         std::vector<float> hh = load_matrix_to_vector(root["lstm.weight_hh_l" + std::to_string(layer)]);
-        assert(ih.size() == (3 * hidden_size * ((layer == 0) ? feature_dim : hidden_size)));
-        assert(hh.size() == (3 * hidden_size * hidden_size));
+        // https://google.github.io/glog/stable/logging/#runtime-checks
+        // assert(ih.size() == (3 * hidden_size * ((layer == 0) ? feature_dim : hidden_size)));
+        // assert(hh.size() == (3 * hidden_size * hidden_size));
+        CHECK(ih.size() == (3 * hidden_size * ((layer == 0) ? feature_dim : hidden_size))) << "Size lstm.weight_ih_l" << std::to_string(layer) << " not matched.";
+        CHECK(hh.size() == (3 * hidden_size * hidden_size)) << "Size lstm.weight_hh_l" << std::to_string(layer) << " not matched.";
 #ifdef DEBUG
         debug_flatten_matrix(ih, (layer == 0) ? feature_dim : hidden_size, "Flattened Matrix lstm.weight_ih_l" + std::to_string(layer));
         debug_flatten_matrix(hh, hidden_size, "Flattened Matrix lstm.weight_hh_l" + std::to_string(layer));
@@ -196,8 +200,10 @@ void SingleStepLSTMRegressionMKL::load_state_dict(const std::string &json_str)
 
         std::vector<float> bias_ih = load_vector(root["lstm.bias_ih_l" + std::to_string(layer)]);
         std::vector<float> bias_hh = load_vector(root["lstm.bias_hh_l" + std::to_string(layer)]);
-        assert(bias_ih.size() == (3 * hidden_size));
-        assert(bias_hh.size() == (3 * hidden_size));
+        // assert(bias_ih.size() == (3 * hidden_size));
+        // assert(bias_hh.size() == (3 * hidden_size));
+        CHECK(bias_ih.size() == (3 * hidden_size)) << "Size lstm.bias_ih_l" << std::to_string(layer) << " not matched.";
+        CHECK(bias_hh.size() == (3 * hidden_size)) << "Size lstm.bias_hh_l" << std::to_string(layer) << " not matched.";
         lstm_biases_ih[layer].assign(bias_ih.begin(), bias_ih.end());
         lstm_biases_ih[layer].insert(lstm_biases_ih[layer].end(), bias_ih.begin(), bias_ih.end());
         lstm_biases_hh[layer].assign(bias_hh.begin(), bias_hh.end());
@@ -205,9 +211,11 @@ void SingleStepLSTMRegressionMKL::load_state_dict(const std::string &json_str)
     }
 
     linear_weights = load_vector(root["linear.weight"][0]);
-    assert(linear_weights.size() == hidden_size);
+    // assert(linear_weights.size() == hidden_size);
+    CHECK(linear_weights.size() == hidden_size) << "Size linear.weight not matched.";
     linear_biases = load_vector(root["linear.bias"]);
-    assert(linear_biases.size() == 1);
+    // assert(linear_biases.size() == 1);
+    CHECK(linear_biases.size() == 1) << "Size linear.bias not matched.";
 #ifdef DEBUG
     debug_vector(linear_biases, "linear.bias");
 #endif // DEBUG

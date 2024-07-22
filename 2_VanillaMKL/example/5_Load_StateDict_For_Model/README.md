@@ -67,3 +67,9 @@ tensor([[1.1921]], grad_fn=<AddmmBackward0>)
 - [gru-from-scratch/gru.py at main · gursi26/gru-from-scratch](https://github.com/gursi26/gru-from-scratch/blob/main/gru.py)
 - [d2l-pytorch/Ch10_Recurrent_Neural_Networks/Gated_Recurrent_Units.ipynb at master · dsgiitr/d2l-pytorch](https://github.com/dsgiitr/d2l-pytorch/blob/master/Ch10_Recurrent_Neural_Networks/Gated_Recurrent_Units.ipynb)
 - [d2l-pytorch/Ch10_Recurrent_Neural_Networks/Long_Short_Term_Memory.ipynb at master · dsgiitr/d2l-pytorch](https://github.com/dsgiitr/d2l-pytorch/blob/master/Ch10_Recurrent_Neural_Networks/Long_Short_Term_Memory.ipynb)
+
+[Adjusting Output - Google Logging Library](https://google.github.io/glog/stable/flags/#using-command-line-parameters-and-environment-variables)
+
+```bash
+GLOG_logtostderr=1 ./build/load_and_run state_dict.json 1
+```

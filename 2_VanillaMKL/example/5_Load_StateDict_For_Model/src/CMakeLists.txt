@@ -34,6 +34,12 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     # https://cmake.org/cmake/help/latest/command/target_compile_definitions.html
     target_compile_definitions(${TARGET_NAME} PRIVATE DEBUG)
 endif()
+
+# https://google.github.io/glog/stable/usage/#using-glog-in-a-cmake-project
+# Assuming that glog was previously built using CMake or installed using a package manager, you can use the CMake command find_package to build against glog in your CMake project
+find_package (glog 0.7.1 REQUIRED)
+target_link_libraries (${TARGET_NAME} glog::glog)
+
 add_custom_target(cpu-gpu DEPENDS ${TARGET_NAME})
 
 #

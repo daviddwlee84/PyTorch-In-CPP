@@ -7,11 +7,15 @@
 #include <omp.h>
 #include <chrono>
 #include <nlohmann/json.hpp> // Include the JSON library header
+#include <glog/logging.h>
 
 using json = nlohmann::json;
 
 int main(int argc, const char *argv[])
 {
+    google::InitGoogleLogging(argv[0]);
+    LOG(INFO) << "glog initialized";
+
     if (argc < 2 or argc > 3)
     {
         std::cerr << "usage: " << argv[0] << " <path-to-state_dict_json> [iterations=100]\n";

@@ -54,6 +54,23 @@ sudo apt install gdb
 
 > TODO: `clang`..?
 
+### Dependencies
+
+glog
+
+- [google/glog: C++ implementation of the Google logging module](https://github.com/google/glog)
+  - [glog - Conan 2.0: C and C++ Open Source Package Manager](https://conan.io/center/recipes/glog?version=0.7.1)
+
+> ```bash
+> git clone https://github.com/google/glog.git
+> cd glog
+> mkdir build
+> cd build
+> cmake ..
+> make
+> sudo make install
+> ```
+
 ## 1. TorchScript
 
 ## 2. Json + MKL
@@ -65,3 +82,9 @@ sudo apt install gdb
   - [Introductory Videos for C++ in Visual Studio Code](https://code.visualstudio.com/docs/cpp/introvideos-cpp)
   - [c_cpp_properties.json reference](https://code.visualstudio.com/docs/cpp/c-cpp-properties-schema-reference)
 - [Tasks in Visual Studio Code](https://code.visualstudio.com/docs/editor/tasks)
+
+---
+
+- [microsoft/vcpkg: C++ Library Manager for Windows, Linux, and MacOS](https://github.com/Microsoft/vcpkg)
+- [conan-io/conan: Conan - The open-source C and C++ package manager](https://github.com/conan-io/conan)
+  - [Build a simple CMake project using Conan — conan 2.5.0 documentation](https://docs.conan.io/2/tutorial/consuming_packages/build_simple_cmake_project.html)

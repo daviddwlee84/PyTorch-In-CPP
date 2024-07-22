@@ -14,4 +14,5 @@ cd build
 cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
 
 # Build the specified target using CMake
-cmake --build . --target cpu-gpu
+# https://stackoverflow.com/questions/36633074/set-the-number-of-threads-in-a-cmake-build
+cmake --build . --target cpu-gpu -- -j `nproc`

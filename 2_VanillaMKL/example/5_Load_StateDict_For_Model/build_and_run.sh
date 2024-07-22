@@ -20,4 +20,4 @@ cmake --build . --target cpu-gpu
 # python ../model.py
 
 # Execute the compiled program with the specified argument
-./load_and_run ../state_dict.json
+GLOG_logtostderr=1 ./load_and_run ../state_dict.json
