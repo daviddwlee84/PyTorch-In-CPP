@@ -14,8 +14,21 @@ SingleStepLSTMRegressionMKL::SingleStepLSTMRegressionMKL(int64_t feature_dim, in
     batch_norm_gamma.resize(feature_dim, 1.0f);
     batch_norm_beta.resize(feature_dim, 0.0f);
 
-    lstm_weights_ih.resize(num_layers, std::vector<float>(3 * hidden_size * feature_dim, 0.1f));
-    lstm_weights_hh.resize(num_layers, std::vector<float>(3 * hidden_size * hidden_size, 0.1f));
+    lstm_weights_ih.resize(num_layers);
+    lstm_weights_hh.resize(num_layers);
+
+    lstm_weights_ih[0].resize(3 * hidden_size * feature_dim, 0.1f); // First layer
+    for (int i = 1; i < num_layers; ++i)
+    {
+        lstm_weights_ih[i].resize(3 * hidden_size * hidden_size, 0.1f); // Subsequent layers
+    }
+
+    lstm_weights_hh[0].resize(3 * hidden_size * hidden_size, 0.1f);
+    for (int i = 1; i < num_layers; ++i)
+    {
+        lstm_weights_hh[i].resize(3 * hidden_size * hidden_size, 0.1f);
+    }
+
     lstm_biases_ih.resize(num_layers, std::vector<float>(3 * hidden_size, 0.1f));
     lstm_biases_hh.resize(num_layers, std::vector<float>(3 * hidden_size, 0.1f));
     linear_weights.resize(hidden_size, 0.1f);
@@ -46,8 +59,10 @@ void SingleStepLSTMRegressionMKL::gru_cell(const std::vector<float> &x, const st
     std::vector<float> r(hidden_size), z(hidden_size), n(hidden_size);
     std::vector<float> x_gates(3 * hidden_size), h_gates(3 * hidden_size);
 
+    int64_t N = (layer == 0) ? feature_dim : hidden_size;
+
     // Compute input gates (x_gates)
-    cblas_sgemv(CblasRowMajor, CblasNoTrans, 3 * hidden_size, feature_dim, 1.0, lstm_weights_ih[layer].data(), feature_dim, x.data(), 1, 0.0, x_gates.data(), 1);
+    cblas_sgemv(CblasRowMajor, CblasNoTrans, 3 * hidden_size, N, 1.0, lstm_weights_ih[layer].data(), N, x.data(), 1, 0.0, x_gates.data(), 1);
     // Add biases for input gates
     for (int i = 0; i < 3 * hidden_size; ++i)
     {
@@ -79,7 +94,6 @@ void SingleStepLSTMRegressionMKL::gru_cell(const std::vector<float> &x, const st
 #ifdef DEBUG
     debug_vector(r, "Reset Gate");
     debug_vector(z, "Update Gate");
-    // BUG: second layer of Hew Hidden is wrong
     debug_vector(n, "New Hidden");
 #endif // DEBUG
 
@@ -103,7 +117,7 @@ std::tuple<std::vector<float>, std::vector<float>> SingleStepLSTMRegressionMKL::
 
     std::vector<float> x_copy = x;
     // BUG: somehow get a little gap between Python result
-    // batch_norm(x_copy);
+    batch_norm(x_copy);
 
 #ifdef DEBUG
     debug_vector(x_copy, "Batch Norm");
@@ -161,7 +175,7 @@ void SingleStepLSTMRegressionMKL::load_state_dict(const std::string &json_str)
         std::vector<float> ih = load_matrix_to_vector(root["lstm.weight_ih_l" + std::to_string(layer)]);
         std::vector<float> hh = load_matrix_to_vector(root["lstm.weight_hh_l" + std::to_string(layer)]);
 #ifdef DEBUG
-        debug_flatten_matrix(ih, hidden_size, "Flattened Matrix lstm.weight_ih_l" + std::to_string(layer));
+        debug_flatten_matrix(ih, (layer == 0) ? feature_dim : hidden_size, "Flattened Matrix lstm.weight_ih_l" + std::to_string(layer));
         debug_flatten_matrix(hh, hidden_size, "Flattened Matrix lstm.weight_hh_l" + std::to_string(layer));
 #endif // DEBUG
        // https://stackoverflow.com/questions/2119177/stl-vector-assign-vs-insert

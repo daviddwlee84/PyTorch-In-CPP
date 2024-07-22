@@ -27,6 +27,8 @@ OpenMP is using 1 threads.
 Output: 2.41577
 ```
 
+NOTE: The Model Here Might Be Wrong
+
 ```bash
 (research) ➜  build git:(main) ✗ ./pure_cpp 1000
 MKL is using 60 threads.
