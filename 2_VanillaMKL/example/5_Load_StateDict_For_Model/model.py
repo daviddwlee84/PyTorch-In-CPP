@@ -1,3 +1,4 @@
+from typing import Dict
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -40,6 +41,12 @@ class PaddedLSTMRegression(nn.Module):
         x = self.linear(x)
         return x.squeeze(-1)
 
+def dump_state_dict_to_json_str(state_dict: Dict[str, torch.Tensor]) -> str:
+    # convert torch state dict to json
+    for entry in state_dict:
+        state_dict[entry] = state_dict[entry].cpu().data.numpy().tolist()
+    state_dict_json = json.dumps(state_dict)
+    return state_dict_json
 
 if __name__ == "__main__":
     # Instantiate the original model and load pretrained weights
@@ -60,10 +67,7 @@ if __name__ == "__main__":
     # Save the state dict
     state_dict = model.state_dict()
 
-    # convert torch state dict to json
-    for entry in state_dict:
-        state_dict[entry] = state_dict[entry].cpu().data.numpy().tolist()
-    state_dict_json = json.dumps(state_dict)
+    state_dict_json = dump_state_dict_to_json_str(state_dict)
 
     with open("state_dict.json", "w") as fp:
         fp.write(state_dict_json)
