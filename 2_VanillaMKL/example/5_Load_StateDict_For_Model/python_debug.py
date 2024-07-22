@@ -5,6 +5,10 @@ import torch.nn.functional as F
 
 
 class GRUCell(nn.Module):
+    """
+    https://pytorch.org/docs/stable/generated/torch.nn.GRUCell.html#torch.nn.GRUCell
+    """
+
     def __init__(self, input_dim, hidden_dim) -> None:
         super(GRUCell, self).__init__()
         self.input_dim, self.hidden_dim = input_dim, hidden_dim
@@ -171,5 +175,4 @@ if __name__ == "__main__":
     from_scratch_output = from_scratch_model(x, h)
     print(from_scratch_output[0])
 
-    # BUG: Output is not correct
     print(output[0] == from_scratch_output[0])

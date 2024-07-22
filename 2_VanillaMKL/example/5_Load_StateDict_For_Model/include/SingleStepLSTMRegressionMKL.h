@@ -25,8 +25,10 @@ private:
     std::vector<float> batch_norm_var;
     std::vector<float> batch_norm_gamma;
     std::vector<float> batch_norm_beta;
-    std::vector<std::vector<float>> lstm_weights;
-    std::vector<std::vector<float>> lstm_biases;
+    std::vector<std::vector<float>> lstm_weights_ih;
+    std::vector<std::vector<float>> lstm_weights_hh;
+    std::vector<std::vector<float>> lstm_biases_ih;
+    std::vector<std::vector<float>> lstm_biases_hh;
     std::vector<float> linear_weights;
     std::vector<float> linear_biases;
 };

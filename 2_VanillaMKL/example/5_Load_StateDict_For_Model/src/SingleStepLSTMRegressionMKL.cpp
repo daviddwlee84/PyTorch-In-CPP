@@ -14,8 +14,10 @@ SingleStepLSTMRegressionMKL::SingleStepLSTMRegressionMKL(int64_t feature_dim, in
     batch_norm_gamma.resize(feature_dim, 1.0f);
     batch_norm_beta.resize(feature_dim, 0.0f);
 
-    lstm_weights.resize(num_layers, std::vector<float>(3 * hidden_size * feature_dim, 0.1f));
-    lstm_biases.resize(num_layers, std::vector<float>(3 * hidden_size, 0.1f));
+    lstm_weights_ih.resize(num_layers, std::vector<float>(3 * hidden_size * feature_dim, 0.1f));
+    lstm_weights_hh.resize(num_layers, std::vector<float>(3 * hidden_size * hidden_size, 0.1f));
+    lstm_biases_ih.resize(num_layers, std::vector<float>(3 * hidden_size, 0.1f));
+    lstm_biases_hh.resize(num_layers, std::vector<float>(3 * hidden_size, 0.1f));
     linear_weights.resize(hidden_size, 0.1f);
     linear_biases.resize(1, 0.1f);
 }
@@ -28,45 +30,45 @@ void SingleStepLSTMRegressionMKL::batch_norm(std::vector<float> &x)
         for (int64_t j = 0; j < feature_dim; ++j)
         {
             int64_t idx = i * feature_dim + j;
-            x[idx] = batch_norm_gamma[j] * (x[idx] - batch_norm_mean[j]) / sqrt(batch_norm_var[j] + 1e-5) + batch_norm_beta[j];
+            x[idx] = batch_norm_gamma[j] * (x[idx] - batch_norm_mean[j]) / std::sqrt(batch_norm_var[j] + 1e-5) + batch_norm_beta[j];
         }
     }
 }
 
-// TODO: fix this
 void SingleStepLSTMRegressionMKL::gru_cell(const std::vector<float> &x, const std::vector<float> &h, std::vector<float> &new_h, int layer)
 {
-    std::vector<float> z(hidden_size);
-    std::vector<float> r(hidden_size);
-    std::vector<float> n(hidden_size);
+    std::vector<float> r(hidden_size), z(hidden_size), n(hidden_size);
+    std::vector<float> x_gates(3 * hidden_size), h_gates(3 * hidden_size);
 
-    // Update gate (z)
-    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, hidden_size, 1, feature_dim, 1.0, lstm_weights[layer].data(), feature_dim, x.data(), 1, 0.0, z.data(), 1);
-    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, hidden_size, 1, hidden_size, 1.0, lstm_weights[layer].data() + 3 * hidden_size * feature_dim, hidden_size, h.data() + layer * hidden_size, 1, 1.0, z.data(), 1);
-
-    // Reset gate (r)
-    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, hidden_size, 1, feature_dim, 1.0, lstm_weights[layer].data() + hidden_size * feature_dim, feature_dim, x.data(), 1, 0.0, r.data(), 1);
-    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, hidden_size, 1, hidden_size, 1.0, lstm_weights[layer].data() + (3 * hidden_size * feature_dim + hidden_size * hidden_size), hidden_size, h.data() + layer * hidden_size, 1, 1.0, r.data(), 1);
-
-    // Candidate hidden state (n)
-    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, hidden_size, 1, feature_dim, 1.0, lstm_weights[layer].data() + 2 * hidden_size * feature_dim, feature_dim, x.data(), 1, 0.0, n.data(), 1);
-    for (int64_t i = 0; i < hidden_size; ++i)
+    // Compute input gates (x_gates)
+    cblas_sgemv(CblasRowMajor, CblasNoTrans, 3 * hidden_size, feature_dim, 1.0, lstm_weights_ih[layer].data(), feature_dim, x.data(), 1, 0.0, x_gates.data(), 1);
+    // Add biases for input gates
+    for (int i = 0; i < 3 * hidden_size; ++i)
     {
-        r[i] = 1.0 / (1.0 + exp(-r[i])); // sigmoid for reset gate
-        n[i] += lstm_biases[layer][i + 2 * hidden_size];
-        n[i] = tanh(n[i] + r[i] * h[layer * hidden_size + i]); // tanh for candidate hidden state
+        x_gates[i] += lstm_biases_ih[layer][i];
     }
 
-    for (int64_t i = 0; i < hidden_size; ++i)
+    // Compute hidden gates (h_gates)
+    cblas_sgemv(CblasRowMajor, CblasNoTrans, 3 * hidden_size, hidden_size, 1.0, lstm_weights_hh[layer].data(), hidden_size, h.data(), 1, 0.0, h_gates.data(), 1);
+    // Add biases for hidden gates
+    for (int i = 0; i < 3 * hidden_size; ++i)
     {
-        z[i] += lstm_biases[layer][i];
-        z[i] = 1.0 / (1.0 + exp(-z[i]));                                  // sigmoid for update gate
-        new_h[i] = (1 - z[i]) * n[i] + z[i] * h[layer * hidden_size + i]; // update hidden state
+        h_gates[i] += lstm_biases_hh[layer][i];
     }
 
-    // debug_vector(z, "Update Gate (z)");
-    // debug_vector(r, "Reset Gate (r)");
-    // debug_vector(n, "New Gate (n)");
+    // Split gates into reset, update, and new gates
+    for (int i = 0; i < hidden_size; ++i)
+    {
+        r[i] = 1.0f / (1.0f + std::exp(-(x_gates[i] + h_gates[i])));
+        z[i] = 1.0f / (1.0f + std::exp(-(x_gates[hidden_size + i] + h_gates[hidden_size + i])));
+        n[i] = std::tanh(x_gates[2 * hidden_size + i] + r[i] * h_gates[2 * hidden_size + i]);
+    }
+
+    // Compute the new hidden state
+    for (int i = 0; i < hidden_size; ++i)
+    {
+        new_h[i] = (1.0f - z[i]) * n[i] + z[i] * h[i];
+    }
 }
 
 std::tuple<std::vector<float>, std::vector<float>> SingleStepLSTMRegressionMKL::forward(const std::vector<float> &x, const std::vector<float> &h)
@@ -81,22 +83,23 @@ std::tuple<std::vector<float>, std::vector<float>> SingleStepLSTMRegressionMKL::
 
     std::vector<float> new_h(num_layers * hidden_size);
     std::vector<float> current_h = h;
+    std::vector<float> layer_input = x_copy;
     for (int layer = 0; layer < num_layers; ++layer)
     {
         std::vector<float> layer_new_h(hidden_size);
-        gru_cell(x_copy, current_h, layer_new_h, layer);
+        gru_cell(layer_input, current_h, layer_new_h, layer);
         for (int i = 0; i < hidden_size; ++i)
         {
             new_h[layer * hidden_size + i] = layer_new_h[i];
         }
-        x_copy = layer_new_h;
+        layer_input = layer_new_h;
     }
 
     debug_vector(x_copy, "GRU x");
     debug_vector(new_h, "GRU h");
 
     std::vector<float> output(1);
-    cblas_sgemv(CblasRowMajor, CblasNoTrans, 1, hidden_size, 1.0, linear_weights.data(), hidden_size, new_h.data(), 1, 0.0, output.data(), 1);
+    cblas_sgemv(CblasRowMajor, CblasNoTrans, 1, hidden_size, 1.0, linear_weights.data(), hidden_size, layer_input.data(), 1, 0.0, output.data(), 1);
     output[0] += linear_biases[0];
 
     debug_vector(output, "Linear x");
@@ -119,35 +122,24 @@ void SingleStepLSTMRegressionMKL::load_state_dict(const std::string &json_str)
 
     for (int layer = 0; layer < num_layers; ++layer)
     {
-        /* Debug
-        std::vector<std::vector<float>> ih = load_matrix(root["lstm.weight_ih_l" + std::to_string(layer)]);
-        std::vector<std::vector<float>> hh = load_matrix(root["lstm.weight_hh_l" + std::to_string(layer)]);
-        debug_matrix(ih, "lstm.weight_ih_l" + std::to_string(layer));
-
-        std::vector<float> ih_vector = load_matrix_to_vector(root["lstm.weight_ih_l" + std::to_string(layer)]);
-        debug_flatten_matrix(ih_vector, ih.front().size(), "Flattened Matrix lstm.weight_ih_l" + std::to_string(layer));
-        */
-
         std::vector<float> ih = load_matrix_to_vector(root["lstm.weight_ih_l" + std::to_string(layer)]);
         std::vector<float> hh = load_matrix_to_vector(root["lstm.weight_hh_l" + std::to_string(layer)]);
         debug_flatten_matrix(ih, hidden_size, "Flattened Matrix lstm.weight_ih_l" + std::to_string(layer));
-
-        /* Alternatives
-        lstm_weights[layer].clear();
-        lstm_weights[layer].insert(lstm_weights[layer].end(), ih.begin(), ih.end());
-        lstm_weights[layer].insert(lstm_weights[layer].end(), hh.begin(), hh.end());
-        */
-
         // https://stackoverflow.com/questions/2119177/stl-vector-assign-vs-insert
-        lstm_weights[layer].assign(ih.begin(), ih.end());
+        lstm_weights_ih[layer].assign(ih.begin(), ih.end());
         // https://cplusplus.com/reference/vector/vector/insert/
         // https://www.digitalocean.com/community/tutorials/vector-insert-in-c-plus-plus
-        lstm_weights[layer].insert(lstm_weights[layer].end(), hh.begin(), hh.end());
+        lstm_weights_ih[layer].insert(lstm_weights_ih[layer].end(), ih.begin(), ih.end());
+
+        lstm_weights_hh[layer].assign(hh.begin(), hh.end());
+        lstm_weights_hh[layer].insert(lstm_weights_hh[layer].end(), hh.begin(), hh.end());
 
         std::vector<float> bias_ih = load_vector(root["lstm.bias_ih_l" + std::to_string(layer)]);
         std::vector<float> bias_hh = load_vector(root["lstm.bias_hh_l" + std::to_string(layer)]);
-        lstm_biases[layer].assign(bias_ih.begin(), bias_ih.end());
-        lstm_biases[layer].insert(lstm_biases[layer].end(), bias_hh.begin(), bias_hh.end());
+        lstm_biases_ih[layer].assign(bias_ih.begin(), bias_ih.end());
+        lstm_biases_ih[layer].insert(lstm_biases_ih[layer].end(), bias_ih.begin(), bias_ih.end());
+        lstm_biases_hh[layer].assign(bias_hh.begin(), bias_hh.end());
+        lstm_biases_hh[layer].insert(lstm_biases_hh[layer].end(), bias_hh.begin(), bias_hh.end());
     }
 
     linear_weights = load_vector(root["linear.weight"][0]);
