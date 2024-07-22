@@ -70,6 +70,12 @@ glog
 > make
 > sudo make install
 > ```
+>
+> `sudo apt install libgoogle-glog-dev` (somehow can solve g++ and Makefile dependencies)
+
+gflags
+
+- [gflags/INSTALL.md at master · gflags/gflags](https://github.com/gflags/gflags/blob/master/INSTALL.md)
 
 ## 1. TorchScript
 
