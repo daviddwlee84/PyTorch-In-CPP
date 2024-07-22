@@ -165,6 +165,11 @@ void SingleStepLSTMRegressionMKL::load_state_dict(const std::string &json_str)
     batch_norm_beta = load_vector(root["batch_norm.bias"]);
     batch_norm_mean = load_vector(root["batch_norm.running_mean"]);
     batch_norm_var = load_vector(root["batch_norm.running_var"]);
+    // https://en.cppreference.com/w/cpp/error/assert
+    assert(batch_norm_gamma.size() == feature_dim);
+    assert(batch_norm_beta.size() == feature_dim);
+    assert(batch_norm_mean.size() == feature_dim);
+    assert(batch_norm_var.size() == feature_dim);
 
 #ifdef DEBUG
     debug_vector(batch_norm_gamma, "batch_norm.weight");
@@ -174,6 +179,8 @@ void SingleStepLSTMRegressionMKL::load_state_dict(const std::string &json_str)
     {
         std::vector<float> ih = load_matrix_to_vector(root["lstm.weight_ih_l" + std::to_string(layer)]);
         std::vector<float> hh = load_matrix_to_vector(root["lstm.weight_hh_l" + std::to_string(layer)]);
+        assert(ih.size() == (3 * hidden_size * ((layer == 0) ? feature_dim : hidden_size)));
+        assert(hh.size() == (3 * hidden_size * hidden_size));
 #ifdef DEBUG
         debug_flatten_matrix(ih, (layer == 0) ? feature_dim : hidden_size, "Flattened Matrix lstm.weight_ih_l" + std::to_string(layer));
         debug_flatten_matrix(hh, hidden_size, "Flattened Matrix lstm.weight_hh_l" + std::to_string(layer));
@@ -189,6 +196,8 @@ void SingleStepLSTMRegressionMKL::load_state_dict(const std::string &json_str)
 
         std::vector<float> bias_ih = load_vector(root["lstm.bias_ih_l" + std::to_string(layer)]);
         std::vector<float> bias_hh = load_vector(root["lstm.bias_hh_l" + std::to_string(layer)]);
+        assert(bias_ih.size() == (3 * hidden_size));
+        assert(bias_hh.size() == (3 * hidden_size));
         lstm_biases_ih[layer].assign(bias_ih.begin(), bias_ih.end());
         lstm_biases_ih[layer].insert(lstm_biases_ih[layer].end(), bias_ih.begin(), bias_ih.end());
         lstm_biases_hh[layer].assign(bias_hh.begin(), bias_hh.end());
@@ -196,7 +205,9 @@ void SingleStepLSTMRegressionMKL::load_state_dict(const std::string &json_str)
     }
 
     linear_weights = load_vector(root["linear.weight"][0]);
+    assert(linear_weights.size() == hidden_size);
     linear_biases = load_vector(root["linear.bias"]);
+    assert(linear_biases.size() == 1);
 #ifdef DEBUG
     debug_vector(linear_biases, "linear.bias");
 #endif // DEBUG

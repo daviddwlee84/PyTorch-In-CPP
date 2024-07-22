@@ -62,7 +62,8 @@ int main(int argc, const char *argv[])
     // Example input
     std::vector<float> input(feature_dim, 1.0);          // Batch size 1, sequence length 1, feature dimension
     std::vector<float> h(num_layers * hidden_size, 0.0); // Initial hidden state
-    debug_vector(h);
+    debug_vector(input);
+    // debug_vector(h);
     debug_flatten_matrix(h, hidden_size);
 
     // Initialize model weights from JSON state_dict
