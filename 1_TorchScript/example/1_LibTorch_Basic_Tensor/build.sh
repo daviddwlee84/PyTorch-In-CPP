@@ -12,4 +12,6 @@ cd build
 # Use PIP installed PyTorch (make sure we are using same version torch for tensor dump and load)
 cmake -DCMAKE_PREFIX_PATH=`python -c 'import torch;print(torch.utils.cmake_prefix_path)'` -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
 
+# USE_MKL=ON cmake --build . --config ${BUILD_TYPE}
+# USE_MKL=OFF cmake --build . --config ${BUILD_TYPE}
 cmake --build . --config ${BUILD_TYPE}

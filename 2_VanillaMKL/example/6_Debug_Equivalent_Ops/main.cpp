@@ -3,52 +3,6 @@
 #include <iostream>
 #include <vector>
 
-void tensor_to_mkl_vector(const torch::Tensor &tensor, float *&vector, int &length)
-{
-    TORCH_CHECK(tensor.is_contiguous(), "Tensor must be contiguous");
-    length = tensor.numel();
-    vector = tensor.data_ptr<float>();
-}
-
-void tensor_to_mkl_vector(const torch::Tensor &tensor, std::vector<float> &vector)
-{
-    TORCH_CHECK(tensor.is_contiguous(), "Tensor must be contiguous");
-    int length = tensor.numel();
-    vector.resize(length);
-    std::memcpy(vector.data(), tensor.data_ptr<float>(), length * sizeof(float));
-}
-
-void tensor_to_mkl_matrix(const torch::Tensor &tensor, float *&matrix, int &rows, int &cols)
-{
-    TORCH_CHECK(tensor.is_contiguous(), "Tensor must be contiguous");
-    rows = tensor.size(0);
-    cols = tensor.size(1);
-    matrix = tensor.data_ptr<float>();
-}
-
-void tensor_to_mkl_matrix(const torch::Tensor &tensor, std::vector<float> &matrix, int &rows, int &cols)
-{
-    TORCH_CHECK(tensor.is_contiguous(), "Tensor must be contiguous");
-    rows = tensor.size(0);
-    cols = tensor.size(1);
-    matrix.resize(rows * cols);
-    std::memcpy(matrix.data(), tensor.data_ptr<float>(), rows * cols * sizeof(float));
-}
-
-void calculate_with_mkl(const torch::Tensor &matrix, const torch::Tensor &vector, torch::Tensor &result)
-{
-    float *mkl_matrix, *mkl_vector, *mkl_result;
-    int rows, cols, length;
-
-    tensor_to_mkl_matrix(matrix, mkl_matrix, rows, cols);
-    tensor_to_mkl_vector(vector, mkl_vector, length);
-
-    // Perform matrix-vector multiplication: result = matrix * vector
-    cblas_sgemv(CblasRowMajor, CblasNoTrans, rows, cols, 1.0, mkl_matrix, cols, mkl_vector, 1, 0.0, mkl_result, 1);
-
-    tensor_to_mkl_vector(result, mkl_result, length);
-}
-
 // Function to debug and print std::vector<float>
 void debug_vector(const std::vector<float> &vec, const std::string &name = "")
 {
@@ -131,9 +85,79 @@ void debug_flatten_matrix(const std::vector<float> &flattened_matrix, int num_co
     std::cout << "(convert size: " << num_rows << ", " << num_cols << ")" << std::endl;
 }
 
+void tensor_to_mkl_vector(const torch::Tensor &tensor, float *&vector, int &length)
+{
+    TORCH_CHECK(tensor.is_contiguous(), "Tensor must be contiguous");
+    length = tensor.numel();
+    vector = tensor.data_ptr<float>();
+}
+
+void tensor_to_mkl_vector(const torch::Tensor &tensor, std::vector<float> &vector)
+{
+    TORCH_CHECK(tensor.is_contiguous(), "Tensor must be contiguous");
+    int length = tensor.numel();
+    vector.resize(length);
+    std::memcpy(vector.data(), tensor.data_ptr<float>(), length * sizeof(float));
+}
+
+void tensor_to_mkl_matrix(const torch::Tensor &tensor, float *&matrix, int &rows, int &cols)
+{
+    TORCH_CHECK(tensor.is_contiguous(), "Tensor must be contiguous");
+    rows = tensor.size(0);
+    cols = tensor.size(1);
+    matrix = tensor.data_ptr<float>();
+}
+
+void tensor_to_mkl_matrix(const torch::Tensor &tensor, std::vector<float> &matrix, int &rows, int &cols)
+{
+    TORCH_CHECK(tensor.is_contiguous(), "Tensor must be contiguous");
+    rows = tensor.size(0);
+    cols = tensor.size(1);
+    matrix.resize(rows * cols);
+    std::memcpy(matrix.data(), tensor.data_ptr<float>(), rows * cols * sizeof(float));
+}
+
+void calculate_with_mkl(const torch::Tensor &matrix, const torch::Tensor &vector, torch::Tensor &result)
+{
+    float *mkl_matrix, *mkl_vector, *mkl_result;
+    int rows, cols, length;
+
+    tensor_to_mkl_matrix(matrix, mkl_matrix, rows, cols);
+    tensor_to_mkl_vector(vector, mkl_vector, length);
+    tensor_to_mkl_vector(result, mkl_result, length);
+
+    // Perform matrix-vector multiplication: result = matrix * vector
+    cblas_sgemv(CblasRowMajor, CblasNoTrans, rows, cols, 1.0, mkl_matrix, cols, mkl_vector, 1, 0.0, mkl_result, 1);
+}
+
+void calculate_with_mkl_std_vector(const torch::Tensor &matrix, const torch::Tensor &vector, torch::Tensor &result)
+{
+    std::vector<float> mkl_matrix, mkl_vector, mkl_result(result.numel());
+
+    int rows, cols;
+    tensor_to_mkl_matrix(matrix, mkl_matrix, rows, cols);
+    tensor_to_mkl_vector(vector, mkl_vector);
+
+    debug_flatten_matrix(mkl_matrix, cols);
+    debug_vector(mkl_vector);
+
+    // Perform matrix-vector multiplication: result = matrix * vector
+    cblas_sgemv(CblasRowMajor, CblasNoTrans, rows, cols, 1.0, mkl_matrix.data(), cols, mkl_vector.data(), 1, 0.0, mkl_result.data(), 1);
+    // cblas_sgemm()
+
+    // Copy the result back to the torch tensor
+    std::memcpy(result.data_ptr<float>(), mkl_result.data(), result.numel() * sizeof(float));
+}
+
 torch::Tensor calculate_with_libtorch(const torch::Tensor &matrix, const torch::Tensor &vector)
 {
-    return torch::matmul(matrix, vector);
+    std::cout << "Input: " << matrix << vector << std::endl;
+    // export USE_MKL=ON / USE_MKL=OFF
+    auto temp = torch::matmul(matrix, vector);
+    // Seems somehow LibTorch conflict with oneMKL...
+    // BUG: Intel oneMKL ERROR: Parameter 6 was incorrect on entry to SGEMV .
+    std::cout << "Output: " << temp << std::endl;
+    return temp;
 }
 
 int main()
@@ -152,15 +176,15 @@ int main()
 
     // float *mkl_matrix, *mkl_vector;
     std::vector<float> mkl_flatten_matrix, mkl_vector;
-    int cols, rows, lengths;
+    int cols, rows;
     tensor_to_mkl_matrix(matrix, mkl_flatten_matrix, rows, cols);
     tensor_to_mkl_vector(vector, mkl_vector);
     debug_flatten_matrix(mkl_flatten_matrix, 3);
     debug_vector(mkl_vector);
 
     // Perform calculations with oneMKL
-    /*
-    calculate_with_mkl(matrix, vector, result_mkl);
+    // calculate_with_mkl(matrix, vector, result_mkl);
+    calculate_with_mkl_std_vector(matrix, vector, result_mkl);
 
     // Perform calculations with LibTorch
     result_libtorch = calculate_with_libtorch(matrix, vector);
@@ -180,7 +204,6 @@ int main()
     {
         std::cout << "The results are not equal." << std::endl;
     }
-    */
 
     return 0;
 }
