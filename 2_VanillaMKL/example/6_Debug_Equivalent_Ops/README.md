@@ -11,3 +11,5 @@ There is serious issue that invoking `torch::matmul` will cause MKL error `Intel
 - [Build without MKL is not possible when MKL is installed · Issue #32407 · pytorch/pytorch](https://github.com/pytorch/pytorch/issues/32407)
 
 Maybe PyTorch use its own MKL version which is conflict with our manual one.
+
+- [Compatibility with newest MKL · Issue #81856 · pytorch/pytorch](https://github.com/pytorch/pytorch/issues/81856)
