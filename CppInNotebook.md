@@ -5,6 +5,7 @@
 Highly recommend first try in [Binder - GitHub: jupyter-xeus/xeus-cling/stable](https://mybinder.org/v2/gh/jupyter-xeus/xeus-cling/stable?filepath=notebooks/xcpp.ipynb)
 
 - [Using third-party libraries · Issue #87 · jupyter-xeus/xeus-cling](https://github.com/jupyter-xeus/xeus-cling/issues/87#issuecomment-349053121)
+- [Build options — xeus-cling documentation](https://xeus-cling.readthedocs.io/en/latest/build_options.html#using-third-party-libraries)
 
 ```cpp
 // If you want to add include path

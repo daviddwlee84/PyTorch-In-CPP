@@ -35,6 +35,12 @@ RUN mamba install -y -c conda-forge xeus-cling jupyterlab
 # https://json.nlohmann.me/integration/package_managers/#conda
 # https://github.com/conda-forge/nlohmann_json-feedstock
 RUN mamba install -y -c conda-forge xtensor xtensor-blas nlohmann_json=3.11.2 xtl mkl libtorch
+# This may update libtorch and downgrade mkl
+RUN mamba install -y pytorch torchvision torchaudio cpuonly -c pytorch
+# RUN mamba install -c intel mkl mkl-devel mkl-static mkl-include
+# RUN mamba install mkl mkl-devel mkl-static mkl-include
+# RUN mamba install -c pytorch mkl mkl-devel mkl-static mkl-include
+RUN mamba install -c pytorch mkl=2023.2.0 mkl-include=2023.2.0
 
 # Optionally, expose the JupyterLab port
 EXPOSE 8888
