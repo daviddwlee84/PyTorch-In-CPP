@@ -64,11 +64,17 @@ int main(int argc, const char *argv[])
     std::cout << "OpenMP is using " << omp_threads << " threads." << std::endl;
 
     // Example input
-    std::vector<float> input(feature_dim, 1.0);          // Batch size 1, sequence length 1, feature dimension
-    std::vector<float> h(num_layers * hidden_size, 0.0); // Initial hidden state
+    std::vector<float> input(feature_dim, 1.0); // Batch size 1, sequence length 1, feature dimension
+    // std::vector<float> h(num_layers * hidden_size, 0.0); // Initial hidden state
     debug_vector(input);
     // debug_vector(h);
-    debug_flatten_matrix(h, hidden_size);
+    // debug_flatten_matrix(h, hidden_size);
+
+    std::vector<std::vector<float>> h(num_layers, std::vector<float>(hidden_size, 0.0));
+    for (const auto &h_layer : h)
+    {
+        debug_vector(h_layer);
+    }
 
     // Initialize model weights from JSON state_dict
     model.load_state_dict(state_dict.dump());

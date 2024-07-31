@@ -109,7 +109,7 @@ void SingleStepLSTMRegressionMKL::gru_cell(const std::vector<float> &x, const st
 #endif // DEBUG
 }
 
-std::tuple<std::vector<float>, std::vector<float>> SingleStepLSTMRegressionMKL::forward(const std::vector<float> &x, const std::vector<float> &h)
+std::tuple<std::vector<float>, std::vector<std::vector<float>>> SingleStepLSTMRegressionMKL::forward(const std::vector<float> &x, const std::vector<std::vector<float>> &h)
 {
 #ifdef DEBUG
     debug_vector(x, "x");
@@ -124,17 +124,14 @@ std::tuple<std::vector<float>, std::vector<float>> SingleStepLSTMRegressionMKL::
     debug_vector(x_copy, "Batch Norm");
 #endif // DEBUG
 
-    std::vector<float> new_h(num_layers * hidden_size);
-    std::vector<float> current_h = h;
+    std::vector<std::vector<float>> new_h(num_layers, std::vector<float>(hidden_size));
     std::vector<float> layer_input = x_copy;
     for (int layer = 0; layer < num_layers; ++layer)
     {
         std::vector<float> layer_new_h(hidden_size);
+        std::vector<float> current_h = h[layer];
         gru_cell(layer_input, current_h, layer_new_h, layer);
-        for (int i = 0; i < hidden_size; ++i)
-        {
-            new_h[layer * hidden_size + i] = layer_new_h[i];
-        }
+        new_h[layer] = layer_new_h;
         layer_input = layer_new_h;
     }
 

@@ -11,7 +11,7 @@ class SingleStepLSTMRegressionMKL
 public:
     SingleStepLSTMRegressionMKL(int64_t feature_dim, int64_t hidden_size = 64, int64_t num_layers = 2);
 
-    std::tuple<std::vector<float>, std::vector<float>> forward(const std::vector<float> &x, const std::vector<float> &h);
+    std::tuple<std::vector<float>, std::vector<std::vector<float>>> forward(const std::vector<float> &x, const std::vector<std::vector<float>> &h);
     void load_state_dict(const std::string &json_str);
 
 private:
