@@ -9,7 +9,7 @@ class GRUCell(nn.Module):
     https://pytorch.org/docs/stable/generated/torch.nn.GRUCell.html#torch.nn.GRUCell
     """
 
-    def __init__(self, input_dim, hidden_dim) -> None:
+    def __init__(self, input_dim: int, hidden_dim: int) -> None:
         super(GRUCell, self).__init__()
         self.input_dim, self.hidden_dim = input_dim, hidden_dim
         self.weight_ih = nn.Parameter(torch.zeros(3 * hidden_dim, input_dim))
@@ -132,6 +132,24 @@ class SingleStepLSTMRegressionFromScratch(nn.Module):
                 param_name = f'linear.{name.split(".")[1]}'
                 if param_name in own_state:
                     own_state[param_name].copy_(param)
+            elif name.startswith("batch_norm"):
+                if name in own_state:
+                    # RuntimeError: output with shape [] doesn't match the broadcast shape [1]
+                    # ipdb> own_state[name]
+                    # tensor(0)
+                    # ipdb> param
+                    # tensor([436600])
+                    try:
+                        own_state[name].copy_(param)
+                    except:
+                        own_state[name] = param
+            else:
+                print(
+                    "Should not be here, if so, there are weights not loaded correctly."
+                )
+                import ipdb
+
+                ipdb.set_trace()
         self.load_state_dict(own_state)
 
 
